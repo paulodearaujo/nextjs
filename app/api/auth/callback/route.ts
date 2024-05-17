@@ -6,17 +6,15 @@ export async function GET(request: NextRequest) {
     const code = searchParams.get('code');
 
     if (!code) {
-        console.error('Missing code');
-        return NextResponse.redirect('/error?error=missing_code');
+        return NextResponse.redirect(new URL('/error?error=missing_code', process.env.NEXT_PUBLIC_BASE_URL).toString());
     }
 
     try {
         const accessToken = await getAccessToken(code);
-        console.log('Access token received:', accessToken);
-        return NextResponse.redirect(`/success?access_token=${accessToken}`);
+        return NextResponse.redirect(new URL(`/success?access_token=${accessToken}`, process.env.NEXT_PUBLIC_BASE_URL).toString());
     } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
         console.error('Error obtaining access token:', errorMessage);
-        return NextResponse.redirect(`/error?error=${errorMessage}`);
+        return NextResponse.redirect(new URL(`/error?error=${errorMessage}`, process.env.NEXT_PUBLIC_BASE_URL).toString());
     }
 }

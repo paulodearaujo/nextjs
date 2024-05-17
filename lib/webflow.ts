@@ -7,8 +7,9 @@ const getEnvVariable = (key: string): string => {
 };
 
 export const getAccessToken = async (authCode: string) => {
-    const clientId = getEnvVariable('WEBFLOW_CLIENT_ID');
+    const clientId = getEnvVariable('NEXT_PUBLIC_WEBFLOW_CLIENT_ID');
     const clientSecret = getEnvVariable('WEBFLOW_CLIENT_SECRET');
+    const redirectUri = getEnvVariable('NEXT_PUBLIC_REDIRECT_URI');
 
     const tokenUrl = 'https://api.webflow.com/oauth/access_token';
     const body = new URLSearchParams({
@@ -16,6 +17,7 @@ export const getAccessToken = async (authCode: string) => {
         client_secret: clientSecret,
         code: authCode,
         grant_type: 'authorization_code',
+        redirect_uri: redirectUri,
     });
 
     console.log('Requesting access token with body:', body.toString());
@@ -36,29 +38,4 @@ export const getAccessToken = async (authCode: string) => {
 
     const tokenData = await response.json();
     return tokenData.access_token;
-};
-
-const PROXY_API_URL = '/api/webflow-proxy';
-
-export const fetchWebflowData = async (accessToken: string) => {
-    try {
-        const response = await fetch(PROXY_API_URL, {
-            method: 'GET',
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-        });
-
-        if (!response.ok) {
-            const errorResponse = await response.json().catch(() => ({}));
-            const errorMessage = errorResponse?.msg || 'Failed to fetch data from Webflow';
-            throw new Error(errorMessage);
-        }
-
-        return await response.json();
-    } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-        console.error('Error fetching data from Webflow:', errorMessage);
-        throw new Error(`Error fetching data from Webflow: ${errorMessage}`);
-    }
 };

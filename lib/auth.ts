@@ -7,7 +7,7 @@ export const authorizeWebflow = () => {
     }
 
     const encodedRedirectUri = encodeURIComponent(redirectUri);
-    const scopes = encodeURIComponent('cms:read cms:write');
+    const scopes = encodeURIComponent('assets:read assets:write authorized_user:read cms:read cms:write custom_code:read custom_code:write forms:read forms:write pages:read pages:write sites:read sites:write');
     const authUrl = `https://webflow.com/oauth/authorize?response_type=code&client_id=${clientId}&redirect_uri=${encodedRedirectUri}&scope=${scopes}`;
 
     window.location.href = authUrl;
