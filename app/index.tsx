@@ -1,11 +1,8 @@
 "use client";
 
-import {useRouter} from 'next/router';
 import {authorizeWebflow} from '@/lib/auth';
 
 const HomePage = () => {
-    const router = useRouter();
-
     return (
         <main className="p-4">
       <header>
