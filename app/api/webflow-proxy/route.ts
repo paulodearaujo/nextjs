@@ -1,8 +1,12 @@
 import {NextRequest, NextResponse} from 'next/server';
 
 export async function GET(request: NextRequest) {
-    const API_URL = `https://api.webflow.com/beta/collections/${process.env.WEBFLOW_COLLECTION_ID}/items?sortBy=lastPublished&sortOrder=desc`;
+    const collectionId = process.env.WEBFLOW_COLLECTION_ID;
+    if (!collectionId) {
+        return NextResponse.json({ error: 'Missing environment variable: WEBFLOW_COLLECTION_ID' }, { status: 500 });
+    }
 
+    const API_URL = `https://api.webflow.com/beta/collections/${collectionId}/items?sortBy=lastPublished&sortOrder=desc`;
     const accessToken = request.headers.get('Authorization')?.split(' ')[1];
 
     if (!accessToken) {

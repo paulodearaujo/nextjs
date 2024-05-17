@@ -4,7 +4,7 @@ import {useEffect, useState} from 'react';
 import {Link, Opportunity} from '@/types';
 import {fetchWebflowData} from '@/lib/webflow';
 import {normalizeUrl, validateUrl} from '@/lib/utils';
-import {authorizeWebflow} from "@/lib/auth";
+import {authorizeWebflow} from '@/lib/auth';
 
 const HyperlinksPage = () => {
     const [targetUrl, setTargetUrl] = useState<string>('');
@@ -35,7 +35,7 @@ const HyperlinksPage = () => {
 
             const accessToken = localStorage.getItem('webflow_access_token');
             if (!accessToken) {
-                authorizeWebflow(); // Certifique-se de que você tem essa função definida em @/lib/auth
+                authorizeWebflow();
                 return;
             }
 
@@ -71,7 +71,7 @@ const HyperlinksPage = () => {
 
             const accessToken = localStorage.getItem('webflow_access_token');
             if (!accessToken) {
-                authorizeWebflow(); // Certifique-se de que você tem essa função definida em @/lib/auth
+                authorizeWebflow();
                 return;
             }
 
