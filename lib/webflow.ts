@@ -37,3 +37,28 @@ export const getAccessToken = async (authCode: string) => {
     const tokenData = await response.json();
     return tokenData.access_token;
 };
+
+const PROXY_API_URL = '/api/webflow-proxy';
+
+export const fetchWebflowData = async (accessToken: string) => {
+    try {
+        const response = await fetch(PROXY_API_URL, {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+        });
+
+        if (!response.ok) {
+            const errorResponse = await response.json().catch(() => ({}));
+            const errorMessage = errorResponse?.msg || 'Failed to fetch data from Webflow';
+            throw new Error(errorMessage);
+        }
+
+        return await response.json();
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        console.error('Error fetching data from Webflow:', errorMessage);
+        throw new Error(`Error fetching data from Webflow: ${errorMessage}`);
+    }
+};
