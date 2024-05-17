@@ -1,113 +1,217 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import {useState} from 'react';
+import {Link, Opportunity} from '@/types';
+import {fetchWebflowData} from '@/lib/api';
+
+const normalizeUrl = (url: string): string => {
+  const normalized = new URL(url);
+  normalized.hostname = normalized.hostname.replace('www.', '');
+  normalized.protocol = 'https:';
+  normalized.pathname = normalized.pathname.replace(/\/$/, ''); // Remove trailing slash
+  return normalized.toString();
+};
+
+const validateUrl = (input: string): void => {
+  if (!/^https?:\/\/\S+$/.test(input)) {
+    throw new Error(`Invalid URL: ${input}`);
+  }
+};
+
+const HomePage = () => {
+  const [targetUrl, setTargetUrl] = useState<string>('');
+  const [existingLinks, setExistingLinks] = useState<Link[]>([]);
+  const [anchorPotentials, setAnchorPotentials] = useState<string>('');
+  const [hyperlinkOpportunities, setHyperlinkOpportunities] = useState<Opportunity[]>([]);
+  const [errorMessage, setErrorMessage] = useState<string>('');
+
+  const clearResults = () => {
+    setExistingLinks([]);
+    setHyperlinkOpportunities([]);
+    setErrorMessage('');
+  };
+
+  const identifyExistingHyperlinks = async () => {
+    try {
+      validateUrl(targetUrl);
+      const normalizedTargetUrl = normalizeUrl(targetUrl);
+
+      const data = await fetchWebflowData();
+
+      const links = data.items.flatMap((item: any) => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(item.fieldData['post-body'], 'text/html');
+        const links = Array.from(doc.querySelectorAll('a[href]')) as HTMLAnchorElement[];
+        return links
+            .filter(link => normalizeUrl(link.href) === normalizedTargetUrl)
+            .map(link => ({
+              urlFrom: item.fieldData['slug'],
+              anchor: link.textContent || '',
+              completeUrl: link.href,
+            }));
+      });
+
+      if (!links.length) setErrorMessage('No links found matching the URL.');
+      setExistingLinks(links);
+    } catch (error) {
+      console.error(error);
+      setErrorMessage((error as Error).message);
+    }
+  };
+
+
+  const discoverHyperlinkOpportunities = async () => {
+    try {
+      validateUrl(targetUrl);
+      const normalizedTargetUrl = normalizeUrl(targetUrl);
+      const anchors = anchorPotentials.split(',').map(a => a.trim().toLowerCase());
+      const usedUrls = new Set<string>();
+
+      const data = await fetchWebflowData();
+
+      const opportunities: Opportunity[] = data.items.reduce((acc: Opportunity[], item: any) => {
+        if (usedUrls.has(normalizeUrl(item.Address))) return acc;
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(item['Content 1'], 'text/html');
+        doc.querySelectorAll('a, h1, h2, h3').forEach(el => el.remove());
+        const text = doc.body.textContent || '';
+
+        anchors.forEach(anchor => {
+          const regex = new RegExp(`\\b${anchor}\\b`, 'gi');
+          if (regex.test(text.toLowerCase())) {
+            const match = regex.exec(text.toLowerCase());
+            if (match) {
+              const contextStart = Math.max(0, match.index - 30);
+              const contextEnd = Math.min(text.length, match.index + 30);
+              acc.push({
+                urlFrom: item.Address,
+                anchorContext: text.substring(contextStart, contextEnd).replace(/\n/g, ' ').trim(),
+                completeUrl: item.Address,
+              });
+              usedUrls.add(normalizeUrl(item.Address));
+            }
+          }
+        });
+
+        return acc;
+      }, []);
+
+      if (!opportunities.length) setErrorMessage('No hyperlink opportunities found.');
+      setHyperlinkOpportunities(opportunities);
+    } catch (error) {
+      console.error(error);
+      setErrorMessage((error as Error).message);
+    }
+  };
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      <main className="p-4">
+      <header>
+        <h1 className="text-2xl font-bold text-center mb-4">InfinitePay Blog Hyperlink Analyzer Tool</h1>
+      </header>
+      <section className="mb-8">
+        <h2 className="text-xl font-semibold">Identify Existing Hyperlinks</h2>
+        <div className="flex gap-2 my-2">
+          <input
+              value={targetUrl}
+              onChange={e => setTargetUrl(e.target.value)}
+              className="flex-1 p-2 border border-gray-300 rounded"
+              placeholder="Enter target URL"
+              type="text"
+          />
+          <button
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              onClick={identifyExistingHyperlinks}
           >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+            Identify Hyperlinks
+          </button>
+          <button
+              className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+              onClick={clearResults}
+          >
+            Clear Results
+          </button>
         </div>
-      </div>
-
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
+        {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+        {existingLinks.length > 0 && (
+            <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="p-2 border-b">From URL</th>
+                <th className="p-2 border-b">Anchor</th>
+              </tr>
+            </thead>
+            <tbody>
+              {existingLinks.map((link, index) => (
+                  <tr key={index}>
+                  <td className="p-2 border-b">
+                    <a href={link.urlFrom} target="_blank" className="text-blue-500 hover:text-blue-600">
+                      {link.urlFrom}
+                    </a>
+                  </td>
+                  <td className="p-2 border-b">{link.anchor}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
+      <section>
+        <h2 className="text-xl font-semibold">Discover Hyperlink Opportunities</h2>
+        <div className="flex flex-col gap-2 my-2">
+          <input
+              value={targetUrl}
+              onChange={e => setTargetUrl(e.target.value)}
+              className="p-2 border border-gray-300 rounded"
+              placeholder="Enter target URL for opportunities"
+              type="text"
+          />
+          <textarea
+              value={anchorPotentials}
+              onChange={e => setAnchorPotentials(e.target.value)}
+              className="p-2 border border-gray-300 rounded"
+              placeholder="Enter potential anchors, separated by commas"
+              rows={3}
+          />
+          <button
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              onClick={discoverHyperlinkOpportunities}
+          >
+            Discover Opportunities
+          </button>
+          <button
+              className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+              onClick={clearResults}
+          >
+            Clear Results
+          </button>
+        </div>
+        {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+        {hyperlinkOpportunities.length > 0 && (
+            <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="p-2 border-b">From URL</th>
+                <th className="p-2 border-b">Context</th>
+              </tr>
+            </thead>
+            <tbody>
+              {hyperlinkOpportunities.map((opportunity, index) => (
+                  <tr key={index}>
+                  <td className="p-2 border-b">
+                    <a href={opportunity.urlFrom} target="_blank" className="text-blue-500 hover:text-blue-600">
+                      {opportunity.urlFrom}
+                    </a>
+                  </td>
+                  <td className="p-2 border-b">{opportunity.anchorContext}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
     </main>
   );
-}
+};
+
+export default HomePage;
