@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
 
     try {
         const accessToken = await getAccessToken(code);
-        return NextResponse.redirect(new URL(`/success?access_token=${accessToken}`, process.env.NEXT_PUBLIC_BASE_URL).toString());
+        return NextResponse.redirect(new URL(`/hyperlinks?access_token=${accessToken}`, process.env.NEXT_PUBLIC_BASE_URL).toString());
     } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
         console.error('Error obtaining access token:', errorMessage);
