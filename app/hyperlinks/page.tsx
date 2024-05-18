@@ -73,6 +73,11 @@ const HyperlinksPage = () => {
         }
     };
 
+    if (!anchorPotentials) {
+        console.error('No anchor potentials provided.');
+        return;
+    }
+
     const discoverHyperlinkOpportunities = async () => {
         try {
             console.log('Starting discoverHyperlinkOpportunities...');
@@ -97,7 +102,10 @@ const HyperlinksPage = () => {
             const anchors = anchorPotentials.split(',').map(a => a.trim().toLowerCase()).filter(a => a);
             console.log('Anchor potentials:', anchors);
 
-            const usedUrls = new Set<string>();
+            if (anchors.length === 0) {
+                setErrorMessage('No valid anchors provided.');
+                return;
+            }
 
             const accessToken = localStorage.getItem('webflow_access_token');
             if (!accessToken) {
@@ -111,29 +119,15 @@ const HyperlinksPage = () => {
             console.log('Fetched data:', data);
 
             const opportunities: Opportunity[] = data.items.reduce((acc: Opportunity[], item: WebflowItem) => {
-                if (!item.Address) {
-                    console.warn(`Invalid URL found in item.Address: ${item.Address}`);
+                const itemSlug = item.fieldData.slug;
+                if (!itemSlug) {
+                    console.warn(`Item without slug found: ${item.id}`);
                     return acc;
                 }
-
-                let normalizedAddress: string | null = null;
-                try {
-                    if (validateUrl(item.Address)) {
-                        normalizedAddress = normalizeUrl(item.Address);
-                    } else {
-                        console.warn(`Invalid URL found in item.Address: ${item.Address}`);
-                        return acc;
-                    }
-                } catch (e) {
-                    console.warn(`Skipping invalid URL: ${item.Address}`);
-                    return acc;
-                }
-
-                if (normalizedAddress && usedUrls.has(normalizedAddress)) return acc;
 
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(item.fieldData['post-body'], 'text/html');
-                console.log(`Parsed content for item: ${item.fieldData.slug}`);
+                console.log(`Parsed content for item: ${itemSlug}`);
 
                 for (const el of Array.from(doc.querySelectorAll('a, h1, h2, h3'))) {
                     el.remove();
@@ -155,12 +149,10 @@ const HyperlinksPage = () => {
                             console.log(`Match found: ${anchorContext}`);
 
                             acc.push({
-                                urlFrom: item.fieldData.slug,
+                                urlFrom: itemSlug,
                                 anchorContext: anchorContext,
-                                completeUrl: item.fieldData.slug,
+                                completeUrl: itemSlug,
                             });
-
-                            if (normalizedAddress) usedUrls.add(normalizedAddress);
                         }
                     }
                 }
@@ -180,6 +172,7 @@ const HyperlinksPage = () => {
             setErrorMessage((error as Error).message);
         }
     };
+
 
     return (
         <main className="p-4">
