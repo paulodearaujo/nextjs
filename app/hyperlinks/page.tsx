@@ -73,10 +73,7 @@ const HyperlinksPage = () => {
         }
     };
 
-    if (!anchorPotentials) {
-        console.error('No anchor potentials provided.');
-        return;
-    }
+    const BASE_URL = 'https://www.infinitepay.io/blog';
 
     const discoverHyperlinkOpportunities = async () => {
         try {
@@ -99,6 +96,12 @@ const HyperlinksPage = () => {
             }
             console.log('URL validated and normalized:', normalizedTargetUrl);
 
+            if (!anchorPotentials) {
+                setErrorMessage('No anchor potentials provided.');
+                console.error('No anchor potentials provided.');
+                return;
+            }
+
             const anchors = anchorPotentials.split(',').map(a => a.trim().toLowerCase()).filter(a => a);
             console.log('Anchor potentials:', anchors);
 
@@ -106,6 +109,8 @@ const HyperlinksPage = () => {
                 setErrorMessage('No valid anchors provided.');
                 return;
             }
+
+            const usedUrls = new Set<string>();
 
             const accessToken = localStorage.getItem('webflow_access_token');
             if (!accessToken) {
@@ -125,10 +130,17 @@ const HyperlinksPage = () => {
                     return acc;
                 }
 
+                const itemUrl = `${BASE_URL}${itemSlug}`;
+                if (normalizedTargetUrl === itemUrl) {
+                    console.log(`Skipping target URL itself: ${itemUrl}`);
+                    return acc;
+                }
+
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(item.fieldData['post-body'], 'text/html');
                 console.log(`Parsed content for item: ${itemSlug}`);
 
+                // Remove anchors and titles to avoid considering them
                 for (const el of Array.from(doc.querySelectorAll('a, h1, h2, h3'))) {
                     el.remove();
                 }
@@ -143,16 +155,26 @@ const HyperlinksPage = () => {
 
                     for (const match of matches) {
                         if (match.index !== undefined) {
+                            // Skip if the match is within an anchor tag
+                            const surroundingHTML = text.substring(Math.max(0, match.index - 30), Math.min(text.length, match.index + 30));
+                            if (surroundingHTML.includes('<a')) {
+                                console.log(`Match within an anchor tag, skipping: ${surroundingHTML}`);
+                                continue;
+                            }
+
                             const contextStart = Math.max(0, match.index - 30);
                             const contextEnd = Math.min(text.length, match.index + 30);
                             const anchorContext = text.substring(contextStart, contextEnd).replace(/\n/g, ' ').trim();
                             console.log(`Match found: ${anchorContext}`);
 
-                            acc.push({
-                                urlFrom: itemSlug,
-                                anchorContext: anchorContext,
-                                completeUrl: itemSlug,
-                            });
+                            if (!usedUrls.has(itemUrl)) {
+                                acc.push({
+                                    urlFrom: itemUrl,
+                                    anchorContext: anchorContext,
+                                    completeUrl: itemUrl,
+                                });
+                                usedUrls.add(itemUrl);
+                            }
                         }
                     }
                 }
@@ -172,6 +194,7 @@ const HyperlinksPage = () => {
             setErrorMessage((error as Error).message);
         }
     };
+
 
     return (
         <main className="p-4">
