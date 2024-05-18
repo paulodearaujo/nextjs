@@ -128,26 +128,33 @@ const HyperlinksPage = () => {
 
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(item.fieldData['post-body'], 'text/html');
+                console.log(`Parsed content for item: ${item.fieldData.slug}`);
 
                 for (const el of Array.from(doc.querySelectorAll('a, h1, h2, h3'))) {
                     el.remove();
                 }
 
                 const text = doc.body.textContent || '';
+                console.log(`Processed text content: ${text.substring(0, 100)}...`); // Logging the first 100 characters
 
                 for (const anchor of anchors) {
                     const regex = new RegExp(`\\b${anchor}\\b`, 'gi');
+                    console.log(`Searching for anchor: ${anchor} using regex: ${regex}`);
                     const matches = text.toLowerCase().matchAll(regex);
 
                     for (const match of matches) {
                         if (match.index !== undefined) {
                             const contextStart = Math.max(0, match.index - 30);
                             const contextEnd = Math.min(text.length, match.index + 30);
+                            const anchorContext = text.substring(contextStart, contextEnd).replace(/\n/g, ' ').trim();
+                            console.log(`Match found: ${anchorContext}`);
+
                             acc.push({
                                 urlFrom: item.fieldData.slug,
-                                anchorContext: text.substring(contextStart, contextEnd).replace(/\n/g, ' ').trim(),
+                                anchorContext: anchorContext,
                                 completeUrl: item.fieldData.slug,
                             });
+
                             if (normalizedAddress) usedUrls.add(normalizedAddress);
                         }
                     }
@@ -168,7 +175,8 @@ const HyperlinksPage = () => {
             setErrorMessage((error as Error).message);
         }
     };
-    
+
+
     return (
         <main className="p-4">
             <header>
