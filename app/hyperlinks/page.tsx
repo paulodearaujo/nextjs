@@ -98,34 +98,43 @@ const HyperlinksPage = () => {
             console.log('Fetched data:', data);
 
             const opportunities: Opportunity[] = data.items.reduce((acc: Opportunity[], item: WebflowItem) => {
-                if (usedUrls.has(normalizeUrl(item.Address))) return acc;
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(item.fieldData['post-body'], 'text/html');
+                try {
+                    const itemUrl = new URL(item.Address);
+                    const normalizedItemUrl = normalizeUrl(itemUrl.href);
+                    if (usedUrls.has(normalizedItemUrl)) return acc;
+                    usedUrls.add(normalizedItemUrl);
 
-                for (const el of Array.from(doc.querySelectorAll('a, h1, h2, h3'))) {
-                    el.remove();
-                }
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(item.fieldData['post-body'], 'text/html');
 
-                const text = doc.body.textContent || '';
+                    // Remover elementos de ancoragem e cabeçalhos
+                    for (const el of Array.from(doc.querySelectorAll('a, h1, h2, h3'))) {
+                        el.remove();
+                    }
 
-                for (const anchor of anchors) {
-                    const regex = new RegExp(`\\b${anchor}\\b`, 'gi');
-                    if (regex.test(text.toLowerCase())) {
-                        const match = regex.exec(text.toLowerCase());
-                        if (match) {
-                            const contextStart = Math.max(0, match.index - 30);
-                            const contextEnd = Math.min(text.length, match.index + 30);
-                            acc.push({
-                                urlFrom: item.fieldData.slug,
-                                anchorContext: text.substring(contextStart, contextEnd).replace(/\n/g, ' ').trim(),
-                                completeUrl: item.fieldData.slug,
-                            });
-                            usedUrls.add(normalizeUrl(item.Address));
+                    const text = doc.body.textContent || '';
+
+                    for (const anchor of anchors) {
+                        const regex = new RegExp(`\\b${anchor}\\b`, 'gi');
+                        if (regex.test(text.toLowerCase())) {
+                            const match = regex.exec(text.toLowerCase());
+                            if (match) {
+                                const contextStart = Math.max(0, match.index - 30);
+                                const contextEnd = Math.min(text.length, match.index + 30);
+                                acc.push({
+                                    urlFrom: item.fieldData.slug,
+                                    anchorContext: text.substring(contextStart, contextEnd).replace(/\n/g, ' ').trim(),
+                                    completeUrl: item.fieldData.slug,
+                                });
+                            }
                         }
                     }
-                }
 
-                return acc;
+                    return acc;
+                } catch (urlError) {
+                    console.warn(`Skipping invalid URL: ${item.Address}`);
+                    return acc;
+                }
             }, []);
 
             console.log('Discovered opportunities:', opportunities);
