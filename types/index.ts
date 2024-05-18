@@ -9,3 +9,21 @@ export interface Opportunity {
     anchorContext: string;
     completeUrl: string;
 }
+
+export interface WebflowItem {
+    id: string;
+    cmsLocaleId: string;
+    lastPublished: string;
+    lastUpdated: string;
+    createdOn: string;
+    isArchived: boolean;
+    isDraft: boolean;
+    fieldData: {
+        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+        [key: string]: any;
+    };
+}
+
+export interface WebflowResponse {
+    items: WebflowItem[];
+}
