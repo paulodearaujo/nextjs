@@ -1,3 +1,5 @@
+// lib/webflow.ts
+
 const getEnvVariable = (key: string): string => {
     const value = process.env[key];
     if (!value) {
@@ -40,9 +42,9 @@ export const getAccessToken = async (authCode: string) => {
     return tokenData.access_token;
 };
 
-const API_URL = `https://api.webflow.com/v2/collections/${process.env.NEXT_PUBLIC_WEBFLOW_COLLECTION_ID}/items`;
-
 export const fetchWebflowData = async (accessToken: string) => {
+    const API_URL = `https://api.webflow.com/v2/collections/${process.env.NEXT_PUBLIC_WEBFLOW_COLLECTION_ID}/items`;
+
     try {
         const response = await fetch(API_URL, {
             method: 'GET',
@@ -54,7 +56,9 @@ export const fetchWebflowData = async (accessToken: string) => {
         });
 
         if (!response.ok) {
-            throw new Error('Failed to fetch data from Webflow');
+            const errorResponse = await response.json().catch(() => ({}));
+            const errorMessage = errorResponse?.msg || 'Failed to fetch data from Webflow';
+            throw new Error(errorMessage);
         }
 
         return response.json();
@@ -63,8 +67,7 @@ export const fetchWebflowData = async (accessToken: string) => {
             console.error('Error fetching data from Webflow:', error.message);
             throw new Error(`Error fetching data from Webflow: ${error.message}`);
         }
-            console.error('Unexpected error:', error);
-            throw new Error('An unexpected error occurred while fetching data from WebFlow');
-
+        console.error('Unexpected error:', error);
+        throw new Error('An unexpected error occurred while fetching data from Webflow');
     }
 };
