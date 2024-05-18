@@ -39,6 +39,7 @@ export const getAccessToken = async (authCode: string) => {
 
 export const fetchWebflowData = async (accessToken: string) => {
     const proxyUrl = '/api/webflow-proxy';
+    console.log('Fetching data from proxy:', proxyUrl);
 
     try {
         const response = await fetch(proxyUrl, {
@@ -51,10 +52,14 @@ export const fetchWebflowData = async (accessToken: string) => {
         });
 
         if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Error response from proxy:', errorText);
             throw new Error('Failed to fetch data from Webflow');
         }
 
-        return response.json();
+        const data = await response.json();
+        console.log('Data received from proxy:', data);
+        return data;
     } catch (error) {
         if (error instanceof Error) {
             console.error('Error fetching data from Webflow:', error.message);
