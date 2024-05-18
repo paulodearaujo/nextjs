@@ -22,6 +22,7 @@ export interface WebflowItem {
         // biome-ignore lint/suspicious/noExplicitAny: <explanation>
         [key: string]: any;
     };
+    Address: string;
 }
 
 export interface WebflowResponse {
