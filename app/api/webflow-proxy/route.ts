@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Missing environment variable: WEBFLOW_COLLECTION_ID' }, { status: 500 });
     }
 
-    const API_URL = `https://api.webflow.com/beta/collections/${collectionId}/items?sortBy=lastPublished&sortOrder=desc`;
+    const API_URL = `https://api.webflow.com/v2/collections/${collectionId}/items`;
     const accessToken = request.headers.get('Authorization')?.split(' ')[1];
 
     if (!accessToken) {

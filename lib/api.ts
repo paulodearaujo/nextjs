@@ -1,4 +1,4 @@
-const API_URL = `https://api.webflow.com/beta/collections/${process.env.WEBFLOW_COLLECTION_ID}/items?sortBy=lastPublished&sortOrder=desc`;
+const API_URL = `https://api.webflow.com/v2/collections/${process.env.WEBFLOW_COLLECTION_ID}/items`;
 
 export const fetchWebflowData = async () => {
     const options = {

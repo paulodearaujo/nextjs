@@ -40,7 +40,7 @@ export const getAccessToken = async (authCode: string) => {
     return tokenData.access_token;
 };
 
-const API_URL = `https://api.webflow.com/collections/${process.env.NEXT_PUBLIC_WEBFLOW_COLLECTION_ID}/items`;
+const API_URL = `https://api.webflow.com/v2/collections/${process.env.NEXT_PUBLIC_WEBFLOW_COLLECTION_ID}/items`;
 
 export const fetchWebflowData = async (accessToken: string) => {
     try {
