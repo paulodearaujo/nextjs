@@ -94,7 +94,7 @@ const HyperlinksPage = () => {
             }
             console.log('URL validated and normalized:', normalizedTargetUrl);
 
-            const anchors = anchorPotentials.split(',').map(a => a.trim().toLowerCase());
+            const anchors = anchorPotentials.split(',').map(a => a.trim().toLowerCase()).filter(a => a);
             console.log('Anchor potentials:', anchors);
 
             const usedUrls = new Set<string>();
@@ -111,6 +111,11 @@ const HyperlinksPage = () => {
             console.log('Fetched data:', data);
 
             const opportunities: Opportunity[] = data.items.reduce((acc: Opportunity[], item: WebflowItem) => {
+                if (!item.Address) {
+                    console.warn(`Invalid URL found in item.Address: ${item.Address}`);
+                    return acc;
+                }
+
                 let normalizedAddress: string | null = null;
                 try {
                     if (validateUrl(item.Address)) {
@@ -175,7 +180,6 @@ const HyperlinksPage = () => {
             setErrorMessage((error as Error).message);
         }
     };
-
 
     return (
         <main className="p-4">
