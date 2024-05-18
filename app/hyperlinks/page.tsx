@@ -2,7 +2,7 @@
 
 import {useEffect, useState} from 'react';
 import type {Link, Opportunity} from '@/types';
-import {fetchWebflowData} from '@/lib/webflow';
+import {fetchAllItems} from '@/app/api/webflow';
 import {normalizeUrl, validateUrl} from '@/lib/utils';
 import {authorizeWebflow} from '@/lib/auth';
 
@@ -44,10 +44,10 @@ const HyperlinksPage = () => {
             }
             console.log('Access token found:', accessToken);
 
-            const data = await fetchWebflowData(accessToken);
+            const data = await fetchAllItems(accessToken);
             console.log('Fetched data:', data);
 
-            const links = data.items.flatMap((item: { fieldData: { 'post-body': string, slug: string }, Address: string }) => {
+            const links = data.items.flatMap((item) => {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(item.fieldData['post-body'], 'text/html');
                 const anchors = Array.from(doc.querySelectorAll('a[href]')) as HTMLAnchorElement[];
@@ -94,10 +94,10 @@ const HyperlinksPage = () => {
             }
             console.log('Access token found:', accessToken);
 
-            const data = await fetchWebflowData(accessToken);
+            const data = await fetchAllItems(accessToken);
             console.log('Fetched data:', data);
 
-            const opportunities: Opportunity[] = data.items.reduce((acc: Opportunity[], item: { fieldData: { 'post-body': string, slug: string }, Address: string }) => {
+            const opportunities: Opportunity[] = data.items.reduce((acc: Opportunity[], item) => {
                 if (usedUrls.has(normalizeUrl(item.Address))) return acc;
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(item.fieldData['post-body'], 'text/html');
