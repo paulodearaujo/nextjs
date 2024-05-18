@@ -1,5 +1,3 @@
-// lib/webflow.ts
-
 const getEnvVariable = (key: string): string => {
     const value = process.env[key];
     if (!value) {
@@ -22,8 +20,6 @@ export const getAccessToken = async (authCode: string) => {
         redirect_uri: redirectUri,
     });
 
-    console.log('Requesting access token with body:', body.toString());
-
     const response = await fetch(tokenUrl, {
         method: 'POST',
         headers: {
@@ -34,7 +30,6 @@ export const getAccessToken = async (authCode: string) => {
 
     if (!response.ok) {
         const error = await response.json();
-        console.error('Error response from Webflow:', error);
         throw new Error(error.error_description || 'Failed to obtain access token');
     }
 
@@ -43,10 +38,10 @@ export const getAccessToken = async (authCode: string) => {
 };
 
 export const fetchWebflowData = async (accessToken: string) => {
-    const API_URL = `https://api.webflow.com/v2/collections/${process.env.NEXT_PUBLIC_WEBFLOW_COLLECTION_ID}/items`;
+    const proxyUrl = '/api/webflow-proxy';
 
     try {
-        const response = await fetch(API_URL, {
+        const response = await fetch(proxyUrl, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -56,9 +51,7 @@ export const fetchWebflowData = async (accessToken: string) => {
         });
 
         if (!response.ok) {
-            const errorResponse = await response.json().catch(() => ({}));
-            const errorMessage = errorResponse?.msg || 'Failed to fetch data from Webflow';
-            throw new Error(errorMessage);
+            throw new Error('Failed to fetch data from Webflow');
         }
 
         return response.json();
