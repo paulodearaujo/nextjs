@@ -41,6 +41,8 @@ const HyperlinksPage = () => {
 
             const data = await fetchWebflowData(accessToken);
 
+            console.log('Fetched data:', data);
+
             const links = data.items.flatMap((item: { fieldData: { 'post-body': string, slug: string }, Address: string }) => {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(item.fieldData['post-body'], 'text/html');
@@ -54,8 +56,13 @@ const HyperlinksPage = () => {
                     }));
             });
 
-            if (!links.length) setErrorMessage('No links found matching the URL.');
-            setExistingLinks(links);
+            console.log('Identified links:', links);
+
+            if (!links.length) {
+                setErrorMessage('No links found matching the URL.');
+            } else {
+                setExistingLinks(links);
+            }
         } catch (error) {
             console.error(error);
             setErrorMessage((error as Error).message);
@@ -76,6 +83,8 @@ const HyperlinksPage = () => {
             }
 
             const data = await fetchWebflowData(accessToken);
+
+            console.log('Fetched data:', data);
 
             const opportunities: Opportunity[] = data.items.reduce((acc: Opportunity[], item: { fieldData: { 'post-body': string, slug: string }, Address: string }) => {
                 if (usedUrls.has(normalizeUrl(item.Address))) return acc;
@@ -108,8 +117,13 @@ const HyperlinksPage = () => {
                 return acc;
             }, []);
 
-            if (!opportunities.length) setErrorMessage('No hyperlink opportunities found.');
-            setHyperlinkOpportunities(opportunities);
+            console.log('Discovered opportunities:', opportunities);
+
+            if (!opportunities.length) {
+                setErrorMessage('No hyperlink opportunities found.');
+            } else {
+                setHyperlinkOpportunities(opportunities);
+            }
         } catch (error) {
             console.error(error);
             setErrorMessage((error as Error).message);
