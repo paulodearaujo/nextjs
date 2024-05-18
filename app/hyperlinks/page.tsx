@@ -76,10 +76,24 @@ const HyperlinksPage = () => {
     const discoverHyperlinkOpportunities = async () => {
         try {
             console.log('Starting discoverHyperlinkOpportunities...');
-            validateUrl(targetUrl);
-            console.log('URL validated:', targetUrl);
+
+            if (!targetUrl.trim()) {
+                setErrorMessage('Please provide a valid URL.');
+                return;
+            }
+
+            const isUrlValid: boolean = validateUrl(targetUrl);
+            if (!isUrlValid) {
+                setErrorMessage('Invalid URL provided.');
+                return;
+            }
+
             const normalizedTargetUrl = normalizeUrl(targetUrl);
-            console.log('Normalized URL:', normalizedTargetUrl);
+            if (!normalizedTargetUrl) {
+                setErrorMessage('URL normalization failed.');
+                return;
+            }
+            console.log('URL validated and normalized:', normalizedTargetUrl);
 
             const anchors = anchorPotentials.split(',').map(a => a.trim().toLowerCase());
             console.log('Anchor potentials:', anchors);
@@ -98,43 +112,37 @@ const HyperlinksPage = () => {
             console.log('Fetched data:', data);
 
             const opportunities: Opportunity[] = data.items.reduce((acc: Opportunity[], item: WebflowItem) => {
-                try {
-                    const itemUrl = new URL(item.Address);
-                    const normalizedItemUrl = normalizeUrl(itemUrl.href);
-                    if (usedUrls.has(normalizedItemUrl)) return acc;
-                    usedUrls.add(normalizedItemUrl);
+                const normalizedAddress = normalizeUrl(item.Address);
+                if (normalizedAddress && usedUrls.has(normalizedAddress)) return acc;
 
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(item.fieldData['post-body'], 'text/html');
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(item.fieldData['post-body'], 'text/html');
 
-                    // Remover elementos de ancoragem e cabeçalhos
-                    for (const el of Array.from(doc.querySelectorAll('a, h1, h2, h3'))) {
-                        el.remove();
-                    }
+                for (const el of Array.from(doc.querySelectorAll('a, h1, h2, h3'))) {
+                    el.remove();
+                }
 
-                    const text = doc.body.textContent || '';
+                const text = doc.body.textContent || '';
 
-                    for (const anchor of anchors) {
-                        const regex = new RegExp(`\\b${anchor}\\b`, 'gi');
-                        if (regex.test(text.toLowerCase())) {
-                            const match = regex.exec(text.toLowerCase());
-                            if (match) {
-                                const contextStart = Math.max(0, match.index - 30);
-                                const contextEnd = Math.min(text.length, match.index + 30);
-                                acc.push({
-                                    urlFrom: item.fieldData.slug,
-                                    anchorContext: text.substring(contextStart, contextEnd).replace(/\n/g, ' ').trim(),
-                                    completeUrl: item.fieldData.slug,
-                                });
-                            }
+                for (const anchor of anchors) {
+                    const regex = new RegExp(`\\b${anchor}\\b`, 'gi');
+                    const matches = text.toLowerCase().matchAll(regex);
+
+                    for (const match of matches) {
+                        if (match.index !== undefined) {
+                            const contextStart = Math.max(0, match.index - 30);
+                            const contextEnd = Math.min(text.length, match.index + 30);
+                            acc.push({
+                                urlFrom: item.fieldData.slug,
+                                anchorContext: text.substring(contextStart, contextEnd).replace(/\n/g, ' ').trim(),
+                                completeUrl: item.fieldData.slug,
+                            });
+                            if (normalizedAddress) usedUrls.add(normalizedAddress);
                         }
                     }
-
-                    return acc;
-                } catch (urlError) {
-                    console.warn(`Skipping invalid URL: ${item.Address}`);
-                    return acc;
                 }
+
+                return acc;
             }, []);
 
             console.log('Discovered opportunities:', opportunities);

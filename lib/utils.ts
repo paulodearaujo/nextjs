@@ -5,13 +5,15 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export const validateUrl = (url: string) => {
+export const validateUrl = (url: string): boolean => {
   try {
     new URL(url);
-  } catch (error) {
-    throw new Error('Invalid URL');
+    return true;
+  } catch {
+    return false;
   }
 };
+
 
 export const normalizeUrl = (url: string) => {
   const normalizedUrl = new URL(url);
