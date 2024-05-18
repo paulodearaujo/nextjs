@@ -62,9 +62,9 @@ export const fetchWebflowData = async (accessToken: string) => {
         if (error instanceof Error) {
             console.error('Error fetching data from Webflow:', error.message);
             throw new Error(`Error fetching data from Webflow: ${error.message}`);
-        } else {
+        }
             console.error('Unexpected error:', error);
             throw new Error('An unexpected error occurred while fetching data from Webflow');
-        }
+
     }
 };
