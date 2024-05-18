@@ -1,8 +1,8 @@
-import {type ClassValue, clsx} from "clsx"
-import {twMerge} from "tailwind-merge"
+import {type ClassValue, clsx} from "clsx";
+import {twMerge} from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
 export const validateUrl = (url: string): boolean => {
@@ -14,8 +14,12 @@ export const validateUrl = (url: string): boolean => {
   }
 };
 
-
-export const normalizeUrl = (url: string) => {
-  const normalizedUrl = new URL(url);
-  return normalizedUrl.origin + normalizedUrl.pathname;
+export const normalizeUrl = (url: string): string | null => {
+  try {
+    const normalizedUrl = new URL(url);
+    return normalizedUrl.origin + normalizedUrl.pathname;
+  } catch (e) {
+    console.warn(`Normalization failed for URL: ${url}`);
+    return null;
+  }
 };

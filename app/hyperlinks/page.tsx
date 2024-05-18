@@ -82,8 +82,7 @@ const HyperlinksPage = () => {
                 return;
             }
 
-            const isUrlValid: boolean = validateUrl(targetUrl);
-            if (!isUrlValid) {
+            if (!validateUrl(targetUrl)) {
                 setErrorMessage('Invalid URL provided.');
                 return;
             }
@@ -112,7 +111,19 @@ const HyperlinksPage = () => {
             console.log('Fetched data:', data);
 
             const opportunities: Opportunity[] = data.items.reduce((acc: Opportunity[], item: WebflowItem) => {
-                const normalizedAddress = normalizeUrl(item.Address);
+                let normalizedAddress: string | null = null;
+                try {
+                    if (validateUrl(item.Address)) {
+                        normalizedAddress = normalizeUrl(item.Address);
+                    } else {
+                        console.warn(`Invalid URL found in item.Address: ${item.Address}`);
+                        return acc;
+                    }
+                } catch (e) {
+                    console.warn(`Skipping invalid URL: ${item.Address}`);
+                    return acc;
+                }
+
                 if (normalizedAddress && usedUrls.has(normalizedAddress)) return acc;
 
                 const parser = new DOMParser();
@@ -157,7 +168,7 @@ const HyperlinksPage = () => {
             setErrorMessage((error as Error).message);
         }
     };
-
+    
     return (
         <main className="p-4">
             <header>
