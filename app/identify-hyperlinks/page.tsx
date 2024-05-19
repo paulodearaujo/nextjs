@@ -67,7 +67,7 @@ const IdentifyHyperlinksPage = () => {
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
       <Card className="w-full max-w-4xl mx-auto shadow-lg rounded-lg bg-gray-800 text-white">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center mb-4">Identify existing hyperlinks</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center mb-4">Identify Existing Hyperlinks</CardTitle>
           <CardDescription className="text-center mb-4">Enter a target URL to identify existing hyperlinks in blog content.</CardDescription>
         </CardHeader>
         <CardContent>
