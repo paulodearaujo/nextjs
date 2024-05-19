@@ -1,20 +1,27 @@
-"use client";
-
 import Link from "next/link";
 import {Button} from "@/components/ui/button";
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 
 const MenuPage = () => {
     return (
-        <main className="flex items-center justify-center h-screen bg-gray-900 text-white">
-      <div className="text-center space-y-4">
-        <Button asChild className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600">
-          <Link href={{ pathname: '/identify-hyperlinks' }}>Identify Existing Hyperlinks</Link>
-        </Button>
-        <Button asChild className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600">
-          <Link href={{ pathname:'/discover-opportunities' }}>Discover Hyperlink Opportunities</Link>
-        </Button>
-      </div>
-    </main>
+        <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
+      <Card className="w-full max-w-4xl mx-auto shadow-lg rounded-lg bg-gray-800">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-center mb-4">Menu</CardTitle>
+          <CardDescription className="text-center mb-4">
+            Choose an option to proceed
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex justify-center space-x-4">
+          <Link href={{ pathname: '/identify-hyperlinks' }}>
+            <Button className="bg-blue-500 text-white hover:bg-blue-600">Identify Existing Hyperlinks</Button>
+          </Link>
+          <Link href={{ pathname:'/discover-opportunities' }}>
+            <Button className="bg-blue-500 text-white hover:bg-blue-600">Discover Hyperlink Opportunities</Button>
+          </Link>
+        </CardContent>
+      </Card>
+    </div>
     );
 };
 

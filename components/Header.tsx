@@ -3,8 +3,15 @@
 import {Home, LineChart, Link as LinkIcon, Settings} from "lucide-react";
 import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
 import Link from "next/link";
+import {usePathname} from "next/navigation";
 
 const Header = () => {
+  const pathname = usePathname();
+  const isLoggedIn = pathname !== "/";
+
+  if (!isLoggedIn) {
+    return null;
+  }
   return (
       <aside className="fixed inset-y-0 left-0 z-10 hidden w-14 flex-col border-r bg-gray-800 sm:flex">
       <nav className="flex flex-col items-center gap-4 px-2 sm:py-5">
