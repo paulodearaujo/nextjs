@@ -1,25 +1,29 @@
 import type {Metadata} from "next";
 import {Inter} from "next/font/google";
 import "./globals.css";
-import {WebflowDataProvider} from '@/context/WebflowDataContext';
+import {WebflowDataProvider} from "@/context/WebflowDataContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "InfinitePay Blog Hyperlink Analyzer Tool",
-  description: "Analyze and discover hyperlink opportunities in blog content",
+    title: "InfinitePay Blog Hyperlink Analyzer Tool",
+    description: "Analyze and discover hyperlink opportunities in blog content",
 };
 
 export default function RootLayout({
-                                     children,
+                                       children,
                                    }: Readonly<{
-  children: React.ReactNode;
+    children: React.ReactNode;
 }>) {
-  return (
-      <html lang="en">
-      <body className={inter.className}>
-        <WebflowDataProvider>{children}</WebflowDataProvider>
-      </body>
-    </html>
-  );
+    return (
+        <html lang="en">
+            <body className={inter.className}>
+                <WebflowDataProvider>
+                    <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 text-gray-900">
+                        {children}
+                    </div>
+                </WebflowDataProvider>
+            </body>
+        </html>
+    );
 }
