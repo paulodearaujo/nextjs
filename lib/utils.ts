@@ -71,3 +71,16 @@ export const getUrlVariations = (url: string): string[] => {
   // Remover duplicatas de variações de URL
   return Array.from(new Set(variations));
 };
+
+
+export function filterByDateRange<T>(
+    data: T[],
+    range: { from: Date; to: Date },
+    key: keyof T
+): T[] {
+  const { from, to } = range;
+  return data.filter((item) => {
+    const date = new Date(item[key] as unknown as string);
+    return date >= from && date <= to;
+  });
+}

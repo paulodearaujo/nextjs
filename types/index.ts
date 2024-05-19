@@ -3,12 +3,14 @@ export interface Link {
     anchor: string;
     completeUrl: string;
     urlTo: string;
+    lastUpdated: string;
 }
 
 export interface Opportunity {
     urlFrom: string;
     anchorContext: string;
     completeUrl: string;
+    lastUpdated: string;
 }
 
 export interface WebflowItem {
@@ -27,7 +29,7 @@ export interface WebflowItem {
         'seo-title': string;
         name: string;
         'post-body': string;
-        date: string;
+        'date-2': string;
         metadescription: string;
         'post-summary-2': string;
         slug: string;
