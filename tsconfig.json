@@ -17,6 +17,7 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "baseUrl": "./",
     "plugins": [
       {
         "name": "next"
@@ -25,7 +26,10 @@
     "paths": {
       "@/*": [
         "./*"
-      ]
+      ],
+      "@/context/*": ["app/context/WebflowDataContext.tsx"],
+      "@/lib/*": ["lib/*"],
+      "@/types": ["types/index.ts"]
     }
   },
   "include": [
