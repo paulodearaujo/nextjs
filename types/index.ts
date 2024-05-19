@@ -2,6 +2,7 @@ export interface Link {
     urlFrom: string;
     anchor: string;
     completeUrl: string;
+    urlTo: string;
 }
 
 export interface Opportunity {
@@ -19,8 +20,26 @@ export interface WebflowItem {
     isArchived: boolean;
     isDraft: boolean;
     fieldData: {
-        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-        [key: string]: any;
+        featured: boolean;
+        'date-sort': string;
+        hero: boolean;
+        'read-time': string;
+        'seo-title': string;
+        name: string;
+        'post-body': string;
+        date: string;
+        metadescription: string;
+        'post-summary-2': string;
+        slug: string;
+        'category-2': string;
+        'post-tags': string[];
+        'banner-type': string;
+        'image-alt-text': string;
+        'thumbnail-image': {
+            fileId: string;
+            url: string;
+            alt: string | null;
+        };
     };
     Address: string;
 }

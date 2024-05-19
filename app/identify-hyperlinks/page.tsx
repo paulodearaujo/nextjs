@@ -2,12 +2,12 @@
 
 import {useState} from 'react';
 import type {Link, WebflowItem} from '@/types';
-import {normalizeUrl, validateUrl} from '@/lib/utils';
+import {getUrlVariations, normalizeUrl, validateUrl} from '@/lib/utils';
 import {useWebflowData} from '@/context/WebflowDataContext';
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {Input} from "@/components/ui/input";
-import {Button} from "@/components/ui/button"
+import {Button} from "@/components/ui/button";
 
 const BASE_URL = 'https://www.infinitepay.io/blog/';
 
@@ -29,24 +29,25 @@ const IdentifyHyperlinksPage = () => {
                 return;
             }
 
-            const normalizedTargetUrl = normalizeUrl(targetUrl);
-            if (!normalizedTargetUrl) {
+            const urlVariations = getUrlVariations(targetUrl);
+            if (urlVariations.length === 0) {
                 setErrorMessage('URL normalization failed.');
                 return;
             }
 
-            console.log('URL validated and normalized:', normalizedTargetUrl);
+            console.log('URL variations:', urlVariations);
 
             const links = webflowData.flatMap((item: WebflowItem) => {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(item.fieldData['post-body'], 'text/html');
                 const anchors = Array.from(doc.querySelectorAll('a[href]')) as HTMLAnchorElement[];
                 return anchors
-                    .filter(link => normalizeUrl(link.href) === normalizedTargetUrl)
+                    .filter(link => urlVariations.includes(normalizeUrl(link.href) || ''))
                     .map(link => ({
                         urlFrom: `${BASE_URL}${item.fieldData.slug}`,
                         anchor: link.textContent || '',
                         completeUrl: link.href,
+                        urlTo: link.href
                     }));
             });
 
@@ -81,6 +82,7 @@ const IdentifyHyperlinksPage = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>From URL</TableHead>
+                  <TableHead>To URL</TableHead>
                   <TableHead>Anchor</TableHead>
                 </TableRow>
               </TableHeader>
@@ -89,6 +91,9 @@ const IdentifyHyperlinksPage = () => {
                     <TableRow key={link.completeUrl}>
                     <TableCell>
                       <a href={link.urlFrom} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">{link.urlFrom}</a>
+                    </TableCell>
+                    <TableCell>
+                      <a href={link.urlTo} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">{link.urlTo}</a>
                     </TableCell>
                     <TableCell>{link.anchor}</TableCell>
                   </TableRow>
