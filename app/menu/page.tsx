@@ -1,31 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {Button} from "@/components/ui/button";
 
 const MenuPage = () => {
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900">
-      <Card className="w-full max-w-md mx-auto shadow-lg rounded-lg">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center mb-4 text-white">
-            InfinitePay Blog Hyperlink Analyzer Tool
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col gap-4">
-                                <Link href={{ pathname: '/identify-hyperlinks' }}
- className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 text-center">
-              Identify Existing Hyperlinks
-            </Link>
-                                <Link href={{ pathname:'/discover-opportunities' }}
- className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 text-center">
-              Discover Hyperlink Opportunities
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+        <main className="flex items-center justify-center h-screen bg-gray-900 text-white">
+      <div className="text-center space-y-4">
+        <Button asChild className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600">
+          <Link href={{ pathname: '/identify-hyperlinks' }}>Identify Existing Hyperlinks</Link>
+        </Button>
+        <Button asChild className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600">
+          <Link href={{ pathname:'/discover-opportunities' }}>Discover Hyperlink Opportunities</Link>
+        </Button>
+      </div>
+    </main>
     );
 };
 

@@ -127,34 +127,16 @@ const DiscoverOpportunitiesPage = () => {
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
-      <Card className="w-full max-w-4xl mx-auto shadow-lg rounded-lg">
+      <Card className="w-full max-w-4xl mx-auto shadow-lg rounded-lg bg-gray-800 text-white">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center mb-4">
-            Discover Hyperlink Opportunities
-          </CardTitle>
-          <CardDescription className="text-center mb-4">
-            Enter a target URL and potential anchors to discover hyperlink opportunities in your Webflow content.
-          </CardDescription>
+          <CardTitle className="text-2xl font-bold text-center mb-4">Discover Hyperlink Opportunities</CardTitle>
+          <CardDescription className="text-center mb-4">Enter a target URL and potential anchors to discover hyperlink opportunities in your Webflow content.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4 mb-4">
-            <Input
-                value={targetUrl}
-                onChange={(e) => setTargetUrl(e.target.value)}
-                className="p-2 border border-gray-300 rounded"
-                placeholder="Enter target URL for opportunities"
-                type="text"
-            />
-            <Input
-                value={anchorPotentials}
-                onChange={(e) => setAnchorPotentials(e.target.value)}
-                className="p-2 border border-gray-300 rounded"
-                placeholder="Enter potential anchors, separated by commas"
-                type="text"
-            />
-            <Button onClick={discoverHyperlinkOpportunities} className="bg-blue-500 text-white hover:bg-blue-600">
-              Discover Opportunities
-            </Button>
+            <Input value={targetUrl} onChange={(e) => setTargetUrl(e.target.value)} placeholder="Enter target URL for opportunities" type="text" className="p-2 border border-gray-700 rounded bg-gray-800 text-white" />
+            <Input value={anchorPotentials} onChange={(e) => setAnchorPotentials(e.target.value)} placeholder="Enter potential anchors, separated by commas" type="text" className="p-2 border border-gray-700 rounded bg-gray-800 text-white" />
+            <Button onClick={discoverHyperlinkOpportunities} className="bg-gray-700 text-white hover:bg-gray-600">Discover Opportunities</Button>
               {errorMessage && <p className="text-red-500">{errorMessage}</p>}
           </div>
             {hyperlinkOpportunities.length > 0 && (
@@ -169,9 +151,7 @@ const DiscoverOpportunitiesPage = () => {
                 {hyperlinkOpportunities.map((opportunity) => (
                     <TableRow key={opportunity.completeUrl}>
                     <TableCell>
-                      <a href={opportunity.urlFrom} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">
-                        {opportunity.urlFrom}
-                      </a>
+                      <a href={opportunity.urlFrom} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">{opportunity.urlFrom}</a>
                     </TableCell>
                     <TableCell>{opportunity.anchorContext}</TableCell>
                   </TableRow>

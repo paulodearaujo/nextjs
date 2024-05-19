@@ -7,7 +7,7 @@ import {useWebflowData} from '@/context/WebflowDataContext';
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {Input} from "@/components/ui/input";
-import {Button} from "@/components/ui/button";
+import {Button} from "@/components/ui/button"
 
 const BASE_URL = 'https://www.infinitepay.io/blog/';
 
@@ -65,27 +65,15 @@ const IdentifyHyperlinksPage = () => {
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
-      <Card className="w-full max-w-4xl mx-auto shadow-lg rounded-lg">
+      <Card className="w-full max-w-4xl mx-auto shadow-lg rounded-lg bg-gray-800 text-white">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center mb-4">
-            Identify Existing Hyperlinks
-          </CardTitle>
-          <CardDescription className="text-center mb-4">
-            Enter a target URL to identify existing hyperlinks in your Webflow content.
-          </CardDescription>
+          <CardTitle className="text-2xl font-bold text-center mb-4">Identify Existing Hyperlinks</CardTitle>
+          <CardDescription className="text-center mb-4">Enter a target URL to identify existing hyperlinks in your Webflow content.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4 mb-4">
-            <Input
-                value={targetUrl}
-                onChange={(e) => setTargetUrl(e.target.value)}
-                className="p-2 border border-gray-300 rounded"
-                placeholder="Enter target URL"
-                type="text"
-            />
-            <Button onClick={identifyExistingHyperlinks} className="bg-blue-500 text-white hover:bg-blue-600">
-              Identify Hyperlinks
-            </Button>
+            <Input value={targetUrl} onChange={(e) => setTargetUrl(e.target.value)} placeholder="Enter target URL" type="text" className="p-2 border border-gray-700 rounded bg-gray-800 text-white" />
+            <Button onClick={identifyExistingHyperlinks} className="bg-gray-700 text-white hover:bg-gray-600">Identify Hyperlinks</Button>
               {errorMessage && <p className="text-red-500">{errorMessage}</p>}
           </div>
             {existingLinks.length > 0 && (
@@ -100,9 +88,7 @@ const IdentifyHyperlinksPage = () => {
                 {existingLinks.map((link) => (
                     <TableRow key={link.completeUrl}>
                     <TableCell>
-                      <a href={link.urlFrom} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">
-                        {link.urlFrom}
-                      </a>
+                      <a href={link.urlFrom} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">{link.urlFrom}</a>
                     </TableCell>
                     <TableCell>{link.anchor}</TableCell>
                   </TableRow>
