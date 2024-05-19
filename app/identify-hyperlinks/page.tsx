@@ -4,8 +4,12 @@ import {useState} from 'react';
 import type {Link, WebflowItem} from '@/types';
 import {normalizeUrl, validateUrl} from '@/lib/utils';
 import {useWebflowData} from '@/context/WebflowDataContext';
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
+import {Input} from "@/components/ui/input";
+import {Button} from "@/components/ui/button";
 
-const BASE_URL = 'https://www.infinitepay.io/blog/'; // Substitua pelo URL base real de sua aplicação
+const BASE_URL = 'https://www.infinitepay.io/blog/';
 
 const IdentifyHyperlinksPage = () => {
     const { webflowData } = useWebflowData();
@@ -60,52 +64,55 @@ const IdentifyHyperlinksPage = () => {
     };
 
     return (
-        <main className="p-4">
-            <header>
-                <h1 className="text-2xl font-bold text-center mb-4">Identify Existing Hyperlinks</h1>
-            </header>
-            <section className="mb-8">
-                <div className="flex gap-2 my-2">
-                    <input
-                        value={targetUrl}
-                        onChange={e => setTargetUrl(e.target.value)}
-                        className="flex-1 p-2 border border-gray-300 rounded"
-                        placeholder="Enter target URL"
-                        type="text"
-                    />
-                    <button
-                        type="button"
-                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                        onClick={identifyExistingHyperlinks}
-                    >
-                        Identify Hyperlinks
-                    </button>
-                </div>
-                {errorMessage && <p className="text-red-500">{errorMessage}</p>}
-                {existingLinks.length > 0 && (
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="bg-gray-100">
-                                <th className="p-2 border-b">From URL</th>
-                                <th className="p-2 border-b">Anchor</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {existingLinks.map(link => (
-                                <tr key={link.completeUrl}>
-                                    <td className="p-2 border-b">
-                                        <a href={link.urlFrom} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">
-                                            {link.urlFrom}
-                                        </a>
-                                    </td>
-                                    <td className="p-2 border-b">{link.anchor}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                )}
-            </section>
-        </main>
+        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
+      <Card className="w-full max-w-4xl mx-auto shadow-lg rounded-lg">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-center mb-4">
+            Identify Existing Hyperlinks
+          </CardTitle>
+          <CardDescription className="text-center mb-4">
+            Enter a target URL to identify existing hyperlinks in your Webflow content.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col gap-4 mb-4">
+            <Input
+                value={targetUrl}
+                onChange={(e) => setTargetUrl(e.target.value)}
+                className="p-2 border border-gray-300 rounded"
+                placeholder="Enter target URL"
+                type="text"
+            />
+            <Button onClick={identifyExistingHyperlinks} className="bg-blue-500 text-white hover:bg-blue-600">
+              Identify Hyperlinks
+            </Button>
+              {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+          </div>
+            {existingLinks.length > 0 && (
+                <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>From URL</TableHead>
+                  <TableHead>Anchor</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {existingLinks.map((link) => (
+                    <TableRow key={link.completeUrl}>
+                    <TableCell>
+                      <a href={link.urlFrom} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">
+                        {link.urlFrom}
+                      </a>
+                    </TableCell>
+                    <TableCell>{link.anchor}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            )}
+        </CardContent>
+      </Card>
+    </div>
     );
 };
 

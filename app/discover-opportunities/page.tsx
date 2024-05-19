@@ -4,6 +4,10 @@ import {useState} from 'react';
 import type {Opportunity, WebflowItem} from '@/types';
 import {normalizeUrl, validateUrl} from '@/lib/utils';
 import {useWebflowData} from '@/context/WebflowDataContext';
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
+import {Input} from "@/components/ui/input";
+import {Button} from "@/components/ui/button";
 
 const BASE_URL = 'https://www.infinitepay.io/blog/'; // Substitua pelo URL base real de sua aplicação
 
@@ -122,59 +126,62 @@ const DiscoverOpportunitiesPage = () => {
     };
 
     return (
-        <main className="p-4">
-            <header>
-                <h1 className="text-2xl font-bold text-center mb-4">Discover Hyperlink Opportunities</h1>
-            </header>
-            <section className="mb-8">
-                <div className="flex gap-2 my-2">
-                    <input
-                        value={targetUrl}
-                        onChange={e => setTargetUrl(e.target.value)}
-                        className="flex-1 p-2 border border-gray-300 rounded"
-                        placeholder="Enter target URL for opportunities"
-                        type="text"
-                    />
-                    <textarea
-                        value={anchorPotentials}
-                        onChange={e => setAnchorPotentials(e.target.value)}
-                        className="p-2 border border-gray-300 rounded"
-                        placeholder="Enter potential anchors, separated by commas"
-                        rows={3}
-                    />
-                    <button
-                        type="button"
-                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                        onClick={discoverHyperlinkOpportunities}
-                    >
-                        Discover Opportunities
-                    </button>
-                </div>
-                {errorMessage && <p className="text-red-500">{errorMessage}</p>}
-                {hyperlinkOpportunities.length > 0 && (
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="bg-gray-100">
-                                <th className="p-2 border-b">From URL</th>
-                                <th className="p-2 border-b">Context</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {hyperlinkOpportunities.map(opportunity => (
-                                <tr key={opportunity.completeUrl}>
-                                    <td className="p-2 border-b">
-                                        <a href={opportunity.urlFrom} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">
-                                            {opportunity.urlFrom}
-                                        </a>
-                                    </td>
-                                    <td className="p-2 border-b">{opportunity.anchorContext}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                )}
-            </section>
-        </main>
+        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
+      <Card className="w-full max-w-4xl mx-auto shadow-lg rounded-lg">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-center mb-4">
+            Discover Hyperlink Opportunities
+          </CardTitle>
+          <CardDescription className="text-center mb-4">
+            Enter a target URL and potential anchors to discover hyperlink opportunities in your Webflow content.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col gap-4 mb-4">
+            <Input
+                value={targetUrl}
+                onChange={(e) => setTargetUrl(e.target.value)}
+                className="p-2 border border-gray-300 rounded"
+                placeholder="Enter target URL for opportunities"
+                type="text"
+            />
+            <Input
+                value={anchorPotentials}
+                onChange={(e) => setAnchorPotentials(e.target.value)}
+                className="p-2 border border-gray-300 rounded"
+                placeholder="Enter potential anchors, separated by commas"
+                type="text"
+            />
+            <Button onClick={discoverHyperlinkOpportunities} className="bg-blue-500 text-white hover:bg-blue-600">
+              Discover Opportunities
+            </Button>
+              {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+          </div>
+            {hyperlinkOpportunities.length > 0 && (
+                <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>From URL</TableHead>
+                  <TableHead>Context</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {hyperlinkOpportunities.map((opportunity) => (
+                    <TableRow key={opportunity.completeUrl}>
+                    <TableCell>
+                      <a href={opportunity.urlFrom} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">
+                        {opportunity.urlFrom}
+                      </a>
+                    </TableCell>
+                    <TableCell>{opportunity.anchorContext}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            )}
+        </CardContent>
+      </Card>
+    </div>
     );
 };
 
