@@ -9,7 +9,7 @@ import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/compo
 import {Input} from "@/components/ui/input";
 import {Button} from "@/components/ui/button";
 
-const BASE_URL = 'https://www.infinitepay.io/blog/'; // Substitua pelo URL base real de sua aplicação
+const BASE_URL = 'https://www.infinitepay.io/blog/';
 
 const DiscoverOpportunitiesPage = () => {
     const { webflowData } = useWebflowData();
@@ -70,7 +70,6 @@ const DiscoverOpportunitiesPage = () => {
                 const doc = parser.parseFromString(item.fieldData['post-body'], 'text/html');
                 console.log(`Parsed content for item: ${itemSlug}`);
 
-                // Remove anchors and titles to avoid considering them
                 for (const el of Array.from(doc.querySelectorAll('a, h1, h2, h3'))) {
                     el.remove();
                 }
@@ -130,13 +129,13 @@ const DiscoverOpportunitiesPage = () => {
       <Card className="w-full max-w-4xl mx-auto shadow-lg rounded-lg bg-gray-800 text-white">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-center mb-4">Discover Hyperlink Opportunities</CardTitle>
-          <CardDescription className="text-center mb-4">Enter a target URL and potential anchors to discover hyperlink opportunities in your Webflow content.</CardDescription>
+          <CardDescription className="text-center mb-4">Enter a target URL and potential anchors to discover hyperlink opportunities in blog content.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4 mb-4">
             <Input value={targetUrl} onChange={(e) => setTargetUrl(e.target.value)} placeholder="Enter target URL for opportunities" type="text" className="p-2 border border-gray-700 rounded bg-gray-800 text-white" />
             <Input value={anchorPotentials} onChange={(e) => setAnchorPotentials(e.target.value)} placeholder="Enter potential anchors, separated by commas" type="text" className="p-2 border border-gray-700 rounded bg-gray-800 text-white" />
-            <Button onClick={discoverHyperlinkOpportunities} className="bg-gray-700 text-white hover:bg-gray-600">Discover Opportunities</Button>
+            <Button onClick={discoverHyperlinkOpportunities} className="bg-gray-700 text-white hover:bg-gray-600">Discover opportunities</Button>
               {errorMessage && <p className="text-red-500">{errorMessage}</p>}
           </div>
             {hyperlinkOpportunities.length > 0 && (

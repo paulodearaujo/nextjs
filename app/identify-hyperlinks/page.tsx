@@ -67,13 +67,13 @@ const IdentifyHyperlinksPage = () => {
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
       <Card className="w-full max-w-4xl mx-auto shadow-lg rounded-lg bg-gray-800 text-white">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center mb-4">Identify Existing Hyperlinks</CardTitle>
-          <CardDescription className="text-center mb-4">Enter a target URL to identify existing hyperlinks in your Webflow content.</CardDescription>
+          <CardTitle className="text-2xl font-bold text-center mb-4">Identify existing hyperlinks</CardTitle>
+          <CardDescription className="text-center mb-4">Enter a target URL to identify existing hyperlinks in blog content.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4 mb-4">
             <Input value={targetUrl} onChange={(e) => setTargetUrl(e.target.value)} placeholder="Enter target URL" type="text" className="p-2 border border-gray-700 rounded bg-gray-800 text-white" />
-            <Button onClick={identifyExistingHyperlinks} className="bg-gray-700 text-white hover:bg-gray-600">Identify Hyperlinks</Button>
+            <Button onClick={identifyExistingHyperlinks} className="bg-gray-700 text-white hover:bg-gray-600">Identify hyperlinks</Button>
               {errorMessage && <p className="text-red-500">{errorMessage}</p>}
           </div>
             {existingLinks.length > 0 && (

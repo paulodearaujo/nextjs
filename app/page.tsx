@@ -11,10 +11,10 @@ const HomePage = () => {
       <Card className="w-full max-w-md mx-auto shadow-lg rounded-lg bg-gray-800 text-white">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-center mb-4">
-            InfinitePay Blog Hyperlink Analyzer Tool
+            InfinitePay's blog hyperlink analyzer tool
           </CardTitle>
           <CardDescription className="text-center mb-4 text-gray-400">
-            Authorize with Webflow to start analyzing your blog content.
+            Authorize with Webflow to start analyzing the content.
           </CardDescription>
         </CardHeader>
         <CardContent>

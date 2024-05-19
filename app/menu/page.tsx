@@ -14,10 +14,10 @@ const MenuPage = () => {
         </CardHeader>
         <CardContent className="flex justify-center space-x-4">
           <Link href={{ pathname: '/identify-hyperlinks' }}>
-            <Button className="bg-blue-500 text-white hover:bg-blue-600">Identify Existing Hyperlinks</Button>
+            <Button className="bg-blue-500 text-white hover:bg-blue-600">Identify existing hyperlinks</Button>
           </Link>
           <Link href={{ pathname:'/discover-opportunities' }}>
-            <Button className="bg-blue-500 text-white hover:bg-blue-600">Discover Hyperlink Opportunities</Button>
+            <Button className="bg-blue-500 text-white hover:bg-blue-600">Discover hyperlink opportunities</Button>
           </Link>
         </CardContent>
       </Card>

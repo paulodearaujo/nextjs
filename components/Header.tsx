@@ -23,19 +23,19 @@ const Header = () => {
           <TooltipTrigger asChild>
             <Link href={{ pathname: '/identify-hyperlinks' }} className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8">
               <LinkIcon className="h-5 w-5" />
-              <span className="sr-only">Identify Hyperlinks</span>
+              <span className="sr-only">Identify hperlinks</span>
             </Link>
           </TooltipTrigger>
-          <TooltipContent side="right">Identify Hyperlinks</TooltipContent>
+          <TooltipContent side="right">Identify hyperlinks</TooltipContent>
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
             <Link href={{ pathname:'/discover-opportunities' }} className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8">
               <LineChart className="h-5 w-5" />
-              <span className="sr-only">Discover Opportunities</span>
+              <span className="sr-only">Discover opportunities</span>
             </Link>
           </TooltipTrigger>
-          <TooltipContent side="right">Discover Opportunities</TooltipContent>
+          <TooltipContent side="right">Discover opportunities</TooltipContent>
         </Tooltip>
       </nav>
       <nav className="mt-auto flex flex-col items-center gap-4 px-2 sm:py-5">
