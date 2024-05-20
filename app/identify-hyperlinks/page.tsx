@@ -79,7 +79,7 @@ const IdentifyHyperlinksPage = () => {
                 setIsSearching(false);
             }
         }
-    }, [isSearching, targetUrl, webflowData]); // Adicionar todas as dependências necessárias
+    }, [isSearching, targetUrl, webflowData]);
 
     const initiateSearch = () => {
         // Limpar estados anteriores antes de iniciar uma nova busca
