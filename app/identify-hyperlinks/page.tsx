@@ -19,6 +19,7 @@ const IdentifyHyperlinksPage = () => {
     const [searchPerformed, setSearchPerformed] = useState<boolean>(false);
 
     const identifyExistingHyperlinks = () => {
+        // Limpar o estado antes de realizar a busca
         setExistingLinks([]);
         setErrorMessage('');
         setSearchPerformed(false);
@@ -102,7 +103,7 @@ const IdentifyHyperlinksPage = () => {
                         </Button>
                         {errorMessage && <p className="text-red-500">{errorMessage}</p>}
                     </div>
-                    {searchPerformed && existingLinks.length > 0 && (
+                    {searchPerformed && (
                         <div className="overflow-x-auto">
                             <Table className="min-w-full">
                                 <TableHeader>
