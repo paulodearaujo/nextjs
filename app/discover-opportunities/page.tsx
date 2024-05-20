@@ -17,55 +17,74 @@ const IdentifyHyperlinksPage = () => {
     const [existingLinks, setExistingLinks] = useState<Link[]>([]);
     const [errorMessage, setErrorMessage] = useState<string>('');
 
-    const identifyExistingHyperlinks = () => {
+    // Função para limpar os estados
+    const clearState = () => {
+        console.log('Antes de limpar o estado:', { existingLinks, errorMessage });
         setExistingLinks([]);
         setErrorMessage('');
+        console.log('Estado limpo: existingLinks e errorMessage resetados.');
+        console.log('Depois de limpar o estado:', { existingLinks, errorMessage });
+    };
 
-        try {
-            if (!targetUrl.trim()) {
-                setErrorMessage('Please provide a valid URL.');
-                return;
+    const identifyExistingHyperlinks = () => {
+        // Limpar estados anteriores antes de iniciar uma nova busca
+        clearState();
+
+        setTimeout(() => {
+            try {
+                if (!targetUrl.trim()) {
+                    setErrorMessage('Please provide a valid URL.');
+                    console.log('Erro: URL vazia ou inválida.');
+                    return;
+                }
+
+                if (!validateUrl(targetUrl)) {
+                    setErrorMessage('Invalid URL provided.');
+                    console.log('Erro: URL fornecida é inválida.');
+                    return;
+                }
+
+                const urlVariations = getUrlVariations(targetUrl);
+                if (urlVariations.length === 0) {
+                    setErrorMessage('URL normalization failed.');
+                    console.log('Erro: Falha na normalização da URL.');
+                    return;
+                }
+
+                console.log('Variações da URL:', urlVariations);
+
+                const links = webflowData.flatMap((item: WebflowItem) => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(item.fieldData['post-body'], 'text/html');
+                    const anchors = Array.from(doc.querySelectorAll('a[href]')) as HTMLAnchorElement[];
+                    return anchors
+                        .filter(link => {
+                            const normalizedHref = normalizeUrl(link.href);
+                            return urlVariations.some(variation => normalizedHref === variation);
+                        })
+                        .map(link => ({
+                            urlFrom: `${BASE_URL}${item.fieldData.slug}`,
+                            anchor: link.textContent || '',
+                            completeUrl: link.href,
+                            urlTo: link.href,
+                            lastUpdated: item.lastUpdated
+                        }));
+                });
+
+                console.log('Links identificados:', links);
+
+                if (!links.length) {
+                    setErrorMessage('No links found matching the URL.');
+                    console.log('Erro: Nenhum link encontrado que corresponda à URL.');
+                } else {
+                    setExistingLinks(links);
+                    console.log('Estado atualizado: existingLinks', links);
+                }
+            } catch (error) {
+                console.error('Erro na função identifyExistingHyperlinks:', error);
+                setErrorMessage((error as Error).message);
             }
-
-            if (!validateUrl(targetUrl)) {
-                setErrorMessage('Invalid URL provided.');
-                return;
-            }
-
-            const urlVariations = getUrlVariations(targetUrl);
-            if (urlVariations.length === 0) {
-                setErrorMessage('URL normalization failed.');
-                return;
-            }
-
-            console.log('URL variations:', urlVariations);
-
-            const links = webflowData.flatMap((item: WebflowItem) => {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(item.fieldData['post-body'], 'text/html');
-                const anchors = Array.from(doc.querySelectorAll('a[href]')) as HTMLAnchorElement[];
-                return anchors
-                    .filter(link => urlVariations.includes(normalizeUrl(link.href) || ''))
-                    .map(link => ({
-                        urlFrom: `${BASE_URL}${item.fieldData.slug}`,
-                        anchor: link.textContent || '',
-                        completeUrl: link.href,
-                        urlTo: link.href,
-                        lastUpdated: item.lastUpdated
-                    }));
-            });
-
-            console.log('Identified links:', links);
-
-            if (!links.length) {
-                setErrorMessage('No links found matching the URL.');
-            } else {
-                setExistingLinks(links);
-            }
-        } catch (error) {
-            console.error('Error in identifyExistingHyperlinks:', error);
-            setErrorMessage((error as Error).message);
-        }
+        }, 0);  // Aguarde um ciclo de eventos para garantir a limpeza do estado
     };
 
     return (
