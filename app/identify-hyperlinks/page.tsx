@@ -1,7 +1,7 @@
 "use client";
 
 import {useState} from 'react';
-import type {Link, WebflowItem} from '@/types';
+import type {Link} from '@/types';
 import {getUrlVariations, normalizeUrl, validateUrl} from '@/lib/utils';
 import {useWebflowData} from '@/context/WebflowDataContext';
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
@@ -16,45 +16,55 @@ const IdentifyHyperlinksPage = () => {
     const [targetUrl, setTargetUrl] = useState<string>('');
     const [existingLinks, setExistingLinks] = useState<Link[]>([]);
     const [errorMessage, setErrorMessage] = useState<string>('');
+    const [searchPerformed, setSearchPerformed] = useState<boolean>(false);
 
     const identifyExistingHyperlinks = () => {
-        // Limpar o estado antes de realizar a busca
         setExistingLinks([]);
         setErrorMessage('');
+        setSearchPerformed(false);
 
         try {
             if (!targetUrl.trim()) {
                 setErrorMessage('Please provide a valid URL.');
+                setSearchPerformed(true);
                 return;
             }
 
             if (!validateUrl(targetUrl)) {
                 setErrorMessage('Invalid URL provided.');
+                setSearchPerformed(true);
                 return;
             }
 
             const urlVariations = getUrlVariations(targetUrl);
             if (urlVariations.length === 0) {
                 setErrorMessage('URL normalization failed.');
+                setSearchPerformed(true);
                 return;
             }
 
             console.log('URL variations:', urlVariations);
 
-            const links = webflowData.flatMap((item: WebflowItem) => {
+            const links: Link[] = [];
+
+            for (const item of webflowData) {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(item.fieldData['post-body'], 'text/html');
                 const anchors = Array.from(doc.querySelectorAll('a[href]')) as HTMLAnchorElement[];
-                return anchors
-                    .filter(link => urlVariations.includes(normalizeUrl(link.href) || ''))
-                    .map(link => ({
-                        urlFrom: `${BASE_URL}${item.fieldData.slug}`,
-                        anchor: link.textContent || '',
-                        completeUrl: link.href,
-                        urlTo: link.href,
-                        lastUpdated: item.lastUpdated // Aqui adicionamos a propriedade `lastUpdated`
-                    }));
-            });
+
+                for (const link of anchors) {
+                    const normalizedLink = normalizeUrl(link.href);
+                    if (normalizedLink && urlVariations.includes(normalizedLink)) {
+                        links.push({
+                            urlFrom: `${BASE_URL}${item.fieldData.slug}`,
+                            anchor: link.textContent || '',
+                            completeUrl: link.href,
+                            urlTo: link.href,
+                            lastUpdated: item.lastUpdated
+                        });
+                    }
+                }
+            }
 
             console.log('Identified links:', links);
 
@@ -67,6 +77,8 @@ const IdentifyHyperlinksPage = () => {
             console.error('Error in identifyExistingHyperlinks:', error);
             setErrorMessage((error as Error).message);
         }
+
+        setSearchPerformed(true);
     };
 
     return (
@@ -78,11 +90,19 @@ const IdentifyHyperlinksPage = () => {
                 </CardHeader>
                 <CardContent>
                     <div className="flex flex-col gap-4 mb-4">
-                        <Input value={targetUrl} onChange={(e) => setTargetUrl(e.target.value)} placeholder="Enter target URL" type="text" className="p-2 border border-gray-700 rounded bg-gray-800 text-white" />
-                        <Button onClick={identifyExistingHyperlinks} className="bg-gray-700 text-white hover:bg-gray-600">Identify hyperlinks</Button>
+                        <Input
+                            value={targetUrl}
+                            onChange={(e) => setTargetUrl(e.target.value)}
+                            placeholder="Enter target URL"
+                            type="text"
+                            className="p-2 border border-gray-700 rounded bg-gray-800 text-white"
+                        />
+                        <Button onClick={identifyExistingHyperlinks} className="bg-gray-700 text-white hover:bg-gray-600">
+                            Identify hyperlinks
+                        </Button>
                         {errorMessage && <p className="text-red-500">{errorMessage}</p>}
                     </div>
-                    {existingLinks.length > 0 && (
+                    {searchPerformed && existingLinks.length > 0 && (
                         <div className="overflow-x-auto">
                             <Table className="min-w-full">
                                 <TableHeader>
@@ -95,18 +115,25 @@ const IdentifyHyperlinksPage = () => {
                                 <TableBody>
                                     {existingLinks.map((link) => (
                                         <TableRow key={link.completeUrl}>
-                                            <TableCell>
-                                                <a href={link.urlFrom} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">{link.urlFrom}</a>
+                                            <TableCell className="break-words">
+                                                <a href={link.urlFrom} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">
+                                                    {link.urlFrom}
+                                                </a>
                                             </TableCell>
-                                            <TableCell>
-                                                <a href={link.urlTo} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">{link.urlTo}</a>
+                                            <TableCell className="break-words">
+                                                <a href={link.urlTo} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">
+                                                    {link.urlTo}
+                                                </a>
                                             </TableCell>
-                                            <TableCell>{link.anchor}</TableCell>
+                                            <TableCell className="break-words">{link.anchor}</TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
                             </Table>
                         </div>
+                    )}
+                    {searchPerformed && existingLinks.length === 0 && !errorMessage && (
+                        <p className="text-center text-gray-400">No links found for the provided URL.</p>
                     )}
                 </CardContent>
             </Card>
