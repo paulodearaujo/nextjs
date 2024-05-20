@@ -18,6 +18,10 @@ const IdentifyHyperlinksPage = () => {
     const [errorMessage, setErrorMessage] = useState<string>('');
 
     const identifyExistingHyperlinks = () => {
+        // Limpar o estado antes de realizar a busca
+        setExistingLinks([]);
+        setErrorMessage('');
+
         try {
             if (!targetUrl.trim()) {
                 setErrorMessage('Please provide a valid URL.');
@@ -79,28 +83,30 @@ const IdentifyHyperlinksPage = () => {
                         {errorMessage && <p className="text-red-500">{errorMessage}</p>}
                     </div>
                     {existingLinks.length > 0 && (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>From URL</TableHead>
-                                    <TableHead>To URL</TableHead>
-                                    <TableHead>Anchor</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {existingLinks.map((link) => (
-                                    <TableRow key={link.completeUrl}>
-                                        <TableCell>
-                                            <a href={link.urlFrom} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">{link.urlFrom}</a>
-                                        </TableCell>
-                                        <TableCell>
-                                            <a href={link.urlTo} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">{link.urlTo}</a>
-                                        </TableCell>
-                                        <TableCell>{link.anchor}</TableCell>
+                        <div className="overflow-x-auto">
+                            <Table className="min-w-full">
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead className="w-1/3">From URL</TableHead>
+                                        <TableHead className="w-1/3">To URL</TableHead>
+                                        <TableHead className="w-1/3">Anchor</TableHead>
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
+                                </TableHeader>
+                                <TableBody>
+                                    {existingLinks.map((link) => (
+                                        <TableRow key={link.completeUrl}>
+                                            <TableCell>
+                                                <a href={link.urlFrom} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">{link.urlFrom}</a>
+                                            </TableCell>
+                                            <TableCell>
+                                                <a href={link.urlTo} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">{link.urlTo}</a>
+                                            </TableCell>
+                                            <TableCell>{link.anchor}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
                     )}
                 </CardContent>
             </Card>

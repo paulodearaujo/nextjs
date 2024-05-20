@@ -19,6 +19,10 @@ const DiscoverOpportunitiesPage = () => {
     const [errorMessage, setErrorMessage] = useState<string>('');
 
     const discoverHyperlinkOpportunities = () => {
+        // Limpar o estado antes de realizar a busca
+        setHyperlinkOpportunities([]);
+        setErrorMessage('');
+
         try {
             if (!targetUrl.trim()) {
                 setErrorMessage('Please provide a valid URL.');
@@ -101,7 +105,7 @@ const DiscoverOpportunitiesPage = () => {
                                     urlFrom: itemUrl,
                                     anchorContext: anchorContext,
                                     completeUrl: itemUrl,
-                                    lastUpdated: item.lastUpdated // Aqui adicionamos a propriedade `lastUpdated`
+                                    lastUpdated: item.lastUpdated
                                 });
                                 usedUrls.add(itemUrl);
                             }
@@ -140,24 +144,28 @@ const DiscoverOpportunitiesPage = () => {
                         {errorMessage && <p className="text-red-500">{errorMessage}</p>}
                     </div>
                     {hyperlinkOpportunities.length > 0 && (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>From URL</TableHead>
-                                    <TableHead>Context</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {hyperlinkOpportunities.map((opportunity) => (
-                                    <TableRow key={opportunity.completeUrl}>
-                                        <TableCell>
-                                            <a href={opportunity.urlFrom} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">{opportunity.urlFrom}</a>
-                                        </TableCell>
-                                        <TableCell>{opportunity.anchorContext}</TableCell>
+                        <div className="overflow-x-auto">
+                            <Table className="min-w-full">
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead className="w-1/3">From URL</TableHead>
+                                        <TableHead className="w-1/3">Context</TableHead>
+                                        <TableHead className="w-1/3">Last Updated</TableHead>
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
+                                </TableHeader>
+                                <TableBody>
+                                    {hyperlinkOpportunities.map((opportunity) => (
+                                        <TableRow key={opportunity.completeUrl}>
+                                            <TableCell>
+                                                <a href={opportunity.urlFrom} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">{opportunity.urlFrom}</a>
+                                            </TableCell>
+                                            <TableCell>{opportunity.anchorContext}</TableCell>
+                                            <TableCell>{new Date(opportunity.lastUpdated).toLocaleDateString()}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
                     )}
                 </CardContent>
             </Card>
