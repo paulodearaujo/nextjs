@@ -46,7 +46,7 @@ const DiscoverOpportunitiesPage = () => {
 
                 console.log('URL validated and normalized:', normalizedTargetUrl);
 
-                if (!anchorPotentials) {
+                if (!anchorPotentials.trim()) {
                     setErrorMessage('No anchor potentials provided.');
                     setIsSearching(false);
                     return;
@@ -94,6 +94,7 @@ const DiscoverOpportunitiesPage = () => {
 
                         for (const match of matches) {
                             if (match.index !== undefined) {
+                                // Skip if the match is within an anchor tag
                                 const surroundingHTML = text.substring(Math.max(0, match.index - 30), Math.min(text.length, match.index + 30));
                                 if (surroundingHTML.includes('<a')) {
                                     console.log(`Match within an anchor tag, skipping: ${surroundingHTML}`);
@@ -135,14 +136,16 @@ const DiscoverOpportunitiesPage = () => {
                 setIsSearching(false);
             }
         }
-    }, [isSearching, targetUrl, anchorPotentials, webflowData]);
+    }, [isSearching, targetUrl, anchorPotentials, webflowData]); // Adicionar todas as dependências necessárias
 
     const initiateSearch = () => {
-        console.log('Antes de limpar o estado:', { hyperlinkOpportunities, errorMessage });
+        // Limpar estados anteriores antes de iniciar uma nova busca
+        console.log('Antes de limpar o estado:', { hyperlinkOpportunities, errorMessage, anchorPotentials });
         setHyperlinkOpportunities([]);
         setErrorMessage('');
-        console.log('Estado limpo: hyperlinkOpportunities e errorMessage resetados.');
-        console.log('Depois de limpar o estado:', { hyperlinkOpportunities, errorMessage });
+        setAnchorPotentials('');
+        console.log('Estado limpo: hyperlinkOpportunities, errorMessage e anchorPotentials resetados.');
+        console.log('Depois de limpar o estado:', { hyperlinkOpportunities, errorMessage, anchorPotentials });
         setIsSearching(true);
     };
 
