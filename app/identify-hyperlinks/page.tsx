@@ -1,7 +1,7 @@
 "use client";
 
-import {useState} from 'react';
-import type {Link} from '@/types';
+import {useEffect, useState} from 'react';
+import type {Link, WebflowItem} from '@/types';
 import {getUrlVariations, normalizeUrl, validateUrl} from '@/lib/utils';
 import {useWebflowData} from '@/context/WebflowDataContext';
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
@@ -16,69 +16,79 @@ const IdentifyHyperlinksPage = () => {
     const [targetUrl, setTargetUrl] = useState<string>('');
     const [existingLinks, setExistingLinks] = useState<Link[]>([]);
     const [errorMessage, setErrorMessage] = useState<string>('');
-    const [searchPerformed, setSearchPerformed] = useState<boolean>(false);
+    const [isSearching, setIsSearching] = useState<boolean>(false);
 
-    const identifyExistingHyperlinks = () => {
-        setExistingLinks([]);
-        setErrorMessage('');
-        setSearchPerformed(false);
+    useEffect(() => {
+        if (isSearching) {
+            try {
+                if (!targetUrl.trim()) {
+                    setErrorMessage('Please provide a valid URL.');
+                    console.log('Erro: URL vazia ou inválida.');
+                    setIsSearching(false);
+                    return;
+                }
 
-        try {
-            if (!targetUrl.trim()) {
-                setErrorMessage('Please provide a valid URL.');
-                setSearchPerformed(true);
-                return;
-            }
+                if (!validateUrl(targetUrl)) {
+                    setErrorMessage('Invalid URL provided.');
+                    console.log('Erro: URL fornecida é inválida.');
+                    setIsSearching(false);
+                    return;
+                }
 
-            if (!validateUrl(targetUrl)) {
-                setErrorMessage('Invalid URL provided.');
-                setSearchPerformed(true);
-                return;
-            }
+                const urlVariations = getUrlVariations(targetUrl);
+                if (urlVariations.length === 0) {
+                    setErrorMessage('URL normalization failed.');
+                    console.log('Erro: Falha na normalização da URL.');
+                    setIsSearching(false);
+                    return;
+                }
 
-            const urlVariations = getUrlVariations(targetUrl);
-            if (urlVariations.length === 0) {
-                setErrorMessage('URL normalization failed.');
-                setSearchPerformed(true);
-                return;
-            }
+                console.log('Variações da URL:', urlVariations);
 
-            console.log('URL variations:', urlVariations);
-
-            const links: Link[] = [];
-
-            for (const item of webflowData) {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(item.fieldData['post-body'], 'text/html');
-                const anchors = Array.from(doc.querySelectorAll('a[href]')) as HTMLAnchorElement[];
-
-                for (const link of anchors) {
-                    const normalizedLink = normalizeUrl(link.href);
-                    if (normalizedLink && urlVariations.includes(normalizedLink)) {
-                        links.push({
+                const links = webflowData.flatMap((item: WebflowItem) => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(item.fieldData['post-body'], 'text/html');
+                    const anchors = Array.from(doc.querySelectorAll('a[href]')) as HTMLAnchorElement[];
+                    return anchors
+                        .filter(link => {
+                            const normalizedHref = normalizeUrl(link.href);
+                            return urlVariations.some(variation => normalizedHref === variation);
+                        })
+                        .map(link => ({
                             urlFrom: `${BASE_URL}${item.fieldData.slug}`,
                             anchor: link.textContent || '',
                             completeUrl: link.href,
                             urlTo: link.href,
                             lastUpdated: item.lastUpdated
-                        });
-                    }
+                        }));
+                });
+
+                console.log('Links identificados:', links);
+
+                if (!links.length) {
+                    setErrorMessage('No links found matching the URL.');
+                    console.log('Erro: Nenhum link encontrado que corresponda à URL.');
+                } else {
+                    setExistingLinks(links);
+                    console.log('Estado atualizado: existingLinks', links);
                 }
+            } catch (error) {
+                console.error('Erro na função identifyExistingHyperlinks:', error);
+                setErrorMessage((error as Error).message);
+            } finally {
+                setIsSearching(false);
             }
-
-            console.log('Identified links:', links);
-
-            if (!links.length) {
-                setErrorMessage('No links found matching the URL.');
-            } else {
-                setExistingLinks(links);
-            }
-        } catch (error) {
-            console.error('Error in identifyExistingHyperlinks:', error);
-            setErrorMessage((error as Error).message);
         }
+    }, [isSearching, targetUrl, webflowData]); // Adicionar todas as dependências necessárias
 
-        setSearchPerformed(true);
+    const initiateSearch = () => {
+        // Limpar estados anteriores antes de iniciar uma nova busca
+        console.log('Antes de limpar o estado:', { existingLinks, errorMessage });
+        setExistingLinks([]);
+        setErrorMessage('');
+        console.log('Estado limpo: existingLinks e errorMessage resetados.');
+        console.log('Depois de limpar o estado:', { existingLinks, errorMessage });
+        setIsSearching(true);
     };
 
     return (
@@ -90,50 +100,33 @@ const IdentifyHyperlinksPage = () => {
                 </CardHeader>
                 <CardContent>
                     <div className="flex flex-col gap-4 mb-4">
-                        <Input
-                            value={targetUrl}
-                            onChange={(e) => setTargetUrl(e.target.value)}
-                            placeholder="Enter target URL"
-                            type="text"
-                            className="p-2 border border-gray-700 rounded bg-gray-800 text-white"
-                        />
-                        <Button onClick={identifyExistingHyperlinks} className="bg-gray-700 text-white hover:bg-gray-600">
-                            Identify hyperlinks
-                        </Button>
+                        <Input value={targetUrl} onChange={(e) => setTargetUrl(e.target.value)} placeholder="Enter target URL" type="text" className="p-2 border border-gray-700 rounded bg-gray-800 text-white" />
+                        <Button onClick={initiateSearch} className="bg-gray-700 text-white hover:bg-gray-600">Identify hyperlinks</Button>
                         {errorMessage && <p className="text-red-500">{errorMessage}</p>}
                     </div>
-                    {searchPerformed && existingLinks.length > 0 && (
-                        <div className="overflow-x-auto">
-                            <Table className="min-w-full">
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead className="w-1/3">From URL</TableHead>
-                                        <TableHead className="w-1/3">To URL</TableHead>
-                                        <TableHead className="w-1/3">Anchor</TableHead>
+                    {existingLinks.length > 0 && (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>From URL</TableHead>
+                                    <TableHead>To URL</TableHead>
+                                    <TableHead>Anchor</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {existingLinks.map((link) => (
+                                    <TableRow key={link.completeUrl}>
+                                        <TableCell>
+                                            <a href={link.urlFrom} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">{link.urlFrom}</a>
+                                        </TableCell>
+                                        <TableCell>
+                                            <a href={link.urlTo} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">{link.urlTo}</a>
+                                        </TableCell>
+                                        <TableCell>{link.anchor}</TableCell>
                                     </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {existingLinks.map((link) => (
-                                        <TableRow key={link.completeUrl}>
-                                            <TableCell className="break-words">
-                                                <a href={link.urlFrom} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">
-                                                    {link.urlFrom}
-                                                </a>
-                                            </TableCell>
-                                            <TableCell className="break-words">
-                                                <a href={link.urlTo} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">
-                                                    {link.urlTo}
-                                                </a>
-                                            </TableCell>
-                                            <TableCell className="break-words">{link.anchor}</TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </div>
-                    )}
-                    {searchPerformed && existingLinks.length === 0 && !errorMessage && (
-                        <p className="text-center text-gray-400">No links found for the provided URL.</p>
+                                ))}
+                            </TableBody>
+                        </Table>
                     )}
                 </CardContent>
             </Card>
