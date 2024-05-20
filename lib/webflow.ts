@@ -1,4 +1,11 @@
 import type {WebflowItem, WebflowResponse} from '@/types';
+// biome-ignore lint/style/useImportType: <explanation>
+import axios, {AxiosError} from 'axios';
+
+interface WebflowErrorResponse {
+    error_description?: string;
+    message?: string;
+}
 
 const API_URL = "https://api.webflow.com/v2/collections";
 
@@ -24,21 +31,19 @@ export const getAccessToken = async (authCode: string): Promise<string> => {
         redirect_uri: redirectUri,
     });
 
-    const response = await fetch(tokenUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body,
-    });
+    try {
+        const response = await axios.post(tokenUrl, body.toString(), {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+        });
 
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error_description || 'Failed to obtain access token');
+        return response.data.access_token;
+    } catch (err) {
+        const error = err as AxiosError<WebflowErrorResponse>;
+        const errorMessage = error.response?.data?.error_description || 'Failed to obtain access token';
+        throw new Error(errorMessage);
     }
-
-    const tokenData = await response.json();
-    return tokenData.access_token;
 };
 
 export const fetchAllItems = async (collectionId: string, accessToken: string): Promise<WebflowItem[]> => {
@@ -49,20 +54,15 @@ export const fetchAllItems = async (collectionId: string, accessToken: string): 
 
     try {
         while (hasMoreItems) {
-            const response = await fetch(`${API_URL}/${collectionId}/items?offset=${offset}&limit=${limit}`, {
-                method: 'GET',
+            const response = await axios.get(`${API_URL}/${collectionId}/items`, {
+                params: { offset, limit },
                 headers: {
                     accept: 'application/json',
                     authorization: `Bearer ${accessToken}`,
                 },
             });
 
-            if (!response.ok) {
-                const errorResponse = await response.json();
-                throw new Error(errorResponse.msg || 'Failed to fetch data from Webflow');
-            }
-
-            const data: WebflowResponse = await response.json();
+            const data: WebflowResponse = response.data;
             allItems = allItems.concat(data.items);
 
             if (data.items.length < limit) {
@@ -71,8 +71,9 @@ export const fetchAllItems = async (collectionId: string, accessToken: string): 
                 offset += limit;
             }
         }
-    } catch (error) {
-        console.error("Error fetching items from Webflow:", error);
+    } catch (err) {
+        const error = err as AxiosError<WebflowErrorResponse>;
+        console.error("Error fetching items from Webflow:", error.message);
         throw error;
     }
 
@@ -80,12 +81,11 @@ export const fetchAllItems = async (collectionId: string, accessToken: string): 
 };
 
 export const fetchWebflowData = async (accessToken: string): Promise<WebflowResponse> => {
-    const proxyUrl = '/api/webflow-proxy';
-    console.log('Fetching data from proxy:', proxyUrl);
+    const apiUrl = 'https://api.webflow.com/v2/collections';
+    console.log('Fetching data from Webflow API:', apiUrl);
 
     try {
-        const response = await fetch(proxyUrl, {
-            method: 'GET',
+        const response = await axios.get(apiUrl, {
             headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/json',
@@ -93,21 +93,11 @@ export const fetchWebflowData = async (accessToken: string): Promise<WebflowResp
             },
         });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Error response from proxy:', errorText);
-            throw new Error('Failed to fetch data from Webflow');
-        }
-
-        const data: WebflowResponse = await response.json();
-        console.log('Data received from proxy:', data);
-        return data;
-    } catch (error) {
-        if (error instanceof Error) {
-            console.error('Error fetching data from Webflow:', error.message);
-            throw new Error(`Error fetching data from Webflow: ${error.message}`);
-        }
-        console.error('Unexpected error:', error);
-        throw new Error('An unexpected error occurred while fetching data from Webflow');
+        return response.data;
+    } catch (err) {
+        const error = err as AxiosError<WebflowErrorResponse>;
+        const errorMessage = error.response?.data?.message || 'Failed to fetch data from Webflow';
+        console.error('Error fetching data from Webflow:', errorMessage);
+        throw new Error(`Error fetching data from Webflow: ${errorMessage}`);
     }
 };
