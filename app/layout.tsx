@@ -11,7 +11,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
     title: "InfinitePay Blog Hyperlink Analyzer Tool",
-    description: "Analyze and discover hyperlink opportunities in blog content",
+    description: "Analyze and discover hyperlink opportunities in blog content.",
 };
 
 export default function RootLayout({
