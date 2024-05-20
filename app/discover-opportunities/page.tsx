@@ -1,8 +1,8 @@
 "use client";
 
 import {useState} from 'react';
-import type {Opportunity, WebflowItem} from '@/types';
-import {normalizeUrl, validateUrl} from '@/lib/utils';
+import type {Link, WebflowItem} from '@/types';
+import {getUrlVariations, normalizeUrl, validateUrl} from '@/lib/utils';
 import {useWebflowData} from '@/context/WebflowDataContext';
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
@@ -11,14 +11,16 @@ import {Button} from "@/components/ui/button";
 
 const BASE_URL = 'https://www.infinitepay.io/blog/';
 
-const DiscoverOpportunitiesPage = () => {
+const IdentifyHyperlinksPage = () => {
     const { webflowData } = useWebflowData();
     const [targetUrl, setTargetUrl] = useState<string>('');
-    const [anchorPotentials, setAnchorPotentials] = useState<string>('');
-    const [hyperlinkOpportunities, setHyperlinkOpportunities] = useState<Opportunity[]>([]);
+    const [existingLinks, setExistingLinks] = useState<Link[]>([]);
     const [errorMessage, setErrorMessage] = useState<string>('');
 
-    const discoverHyperlinkOpportunities = () => {
+    const identifyExistingHyperlinks = () => {
+        setExistingLinks([]);
+        setErrorMessage('');
+
         try {
             if (!targetUrl.trim()) {
                 setErrorMessage('Please provide a valid URL.');
@@ -30,97 +32,38 @@ const DiscoverOpportunitiesPage = () => {
                 return;
             }
 
-            const normalizedTargetUrl = normalizeUrl(targetUrl);
-            if (!normalizedTargetUrl) {
+            const urlVariations = getUrlVariations(targetUrl);
+            if (urlVariations.length === 0) {
                 setErrorMessage('URL normalization failed.');
                 return;
             }
 
-            console.log('URL validated and normalized:', normalizedTargetUrl);
+            console.log('URL variations:', urlVariations);
 
-            if (!anchorPotentials) {
-                setErrorMessage('No anchor potentials provided.');
-                return;
-            }
-
-            const anchors = anchorPotentials.split(',').map(a => a.trim().toLowerCase()).filter(a => a);
-            console.log('Anchor potentials:', anchors);
-
-            if (anchors.length === 0) {
-                setErrorMessage('No valid anchors provided.');
-                return;
-            }
-
-            const usedUrls = new Set<string>();
-
-            const opportunities: Opportunity[] = webflowData.reduce((acc: Opportunity[], item: WebflowItem) => {
-                const itemSlug = item.fieldData.slug;
-                if (!itemSlug) {
-                    console.warn(`Item without slug found: ${item.id}`);
-                    return acc;
-                }
-
-                const itemUrl = `${BASE_URL}${itemSlug}`;
-                if (normalizedTargetUrl === itemUrl) {
-                    console.log(`Skipping target URL itself: ${itemUrl}`);
-                    return acc;
-                }
-
+            const links = webflowData.flatMap((item: WebflowItem) => {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(item.fieldData['post-body'], 'text/html');
-                console.log(`Parsed content for item: ${itemSlug}`);
+                const anchors = Array.from(doc.querySelectorAll('a[href]')) as HTMLAnchorElement[];
+                return anchors
+                    .filter(link => urlVariations.includes(normalizeUrl(link.href) || ''))
+                    .map(link => ({
+                        urlFrom: `${BASE_URL}${item.fieldData.slug}`,
+                        anchor: link.textContent || '',
+                        completeUrl: link.href,
+                        urlTo: link.href,
+                        lastUpdated: item.lastUpdated
+                    }));
+            });
 
-                for (const el of Array.from(doc.querySelectorAll('a, h1, h2, h3'))) {
-                    el.remove();
-                }
+            console.log('Identified links:', links);
 
-                const text = doc.body.textContent || '';
-                console.log(`Processed text content: ${text.substring(0, 100)}...`);
-
-                for (const anchor of anchors) {
-                    const regex = new RegExp(`\\b${anchor}\\b`, 'gi');
-                    console.log(`Searching for anchor: ${anchor} using regex: ${regex}`);
-                    const matches = text.toLowerCase().matchAll(regex);
-
-                    for (const match of matches) {
-                        if (match.index !== undefined) {
-                            // Skip if the match is within an anchor tag
-                            const surroundingHTML = text.substring(Math.max(0, match.index - 30), Math.min(text.length, match.index + 30));
-                            if (surroundingHTML.includes('<a')) {
-                                console.log(`Match within an anchor tag, skipping: ${surroundingHTML}`);
-                                continue;
-                            }
-
-                            const contextStart = Math.max(0, match.index - 30);
-                            const contextEnd = Math.min(text.length, match.index + 30);
-                            const anchorContext = text.substring(contextStart, contextEnd).replace(/\n/g, ' ').trim();
-                            console.log(`Match found: ${anchorContext}`);
-
-                            if (!usedUrls.has(itemUrl)) {
-                                acc.push({
-                                    urlFrom: itemUrl,
-                                    anchorContext: anchorContext,
-                                    completeUrl: itemUrl,
-                                    lastUpdated: item.lastUpdated // Aqui adicionamos a propriedade `lastUpdated`
-                                });
-                                usedUrls.add(itemUrl);
-                            }
-                        }
-                    }
-                }
-
-                return acc;
-            }, []);
-
-            console.log('Discovered opportunities:', opportunities);
-
-            if (!opportunities.length) {
-                setErrorMessage('No hyperlink opportunities found.');
+            if (!links.length) {
+                setErrorMessage('No links found matching the URL.');
             } else {
-                setHyperlinkOpportunities(opportunities);
+                setExistingLinks(links);
             }
         } catch (error) {
-            console.error('Error in discoverHyperlinkOpportunities:', error);
+            console.error('Error in identifyExistingHyperlinks:', error);
             setErrorMessage((error as Error).message);
         }
     };
@@ -129,31 +72,34 @@ const DiscoverOpportunitiesPage = () => {
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
             <Card className="w-full max-w-4xl mx-auto shadow-lg rounded-lg bg-gray-800 text-white">
                 <CardHeader>
-                    <CardTitle className="text-2xl font-bold text-center mb-4">Discover Hyperlink Opportunities</CardTitle>
-                    <CardDescription className="text-center mb-4">Enter a target URL and potential anchors to discover hyperlink opportunities in blog content.</CardDescription>
+                    <CardTitle className="text-2xl font-bold text-center mb-4">Identify Existing Hyperlinks</CardTitle>
+                    <CardDescription className="text-center mb-4">Enter a target URL to identify existing hyperlinks in blog content.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="flex flex-col gap-4 mb-4">
-                        <Input value={targetUrl} onChange={(e) => setTargetUrl(e.target.value)} placeholder="Enter target URL for opportunities" type="text" className="p-2 border border-gray-700 rounded bg-gray-800 text-white" />
-                        <Input value={anchorPotentials} onChange={(e) => setAnchorPotentials(e.target.value)} placeholder="Enter potential anchors, separated by commas" type="text" className="p-2 border border-gray-700 rounded bg-gray-800 text-white" />
-                        <Button onClick={discoverHyperlinkOpportunities} className="bg-gray-700 text-white hover:bg-gray-600">Discover opportunities</Button>
+                        <Input value={targetUrl} onChange={(e) => setTargetUrl(e.target.value)} placeholder="Enter target URL" type="text" className="p-2 border border-gray-700 rounded bg-gray-800 text-white" />
+                        <Button onClick={identifyExistingHyperlinks} className="bg-gray-700 text-white hover:bg-gray-600">Identify hyperlinks</Button>
                         {errorMessage && <p className="text-red-500">{errorMessage}</p>}
                     </div>
-                    {hyperlinkOpportunities.length > 0 && (
+                    {existingLinks.length > 0 && (
                         <Table>
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>From URL</TableHead>
-                                    <TableHead>Context</TableHead>
+                                    <TableHead>To URL</TableHead>
+                                    <TableHead>Anchor</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {hyperlinkOpportunities.map((opportunity) => (
-                                    <TableRow key={opportunity.completeUrl}>
+                                {existingLinks.map((link) => (
+                                    <TableRow key={link.completeUrl}>
                                         <TableCell>
-                                            <a href={opportunity.urlFrom} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">{opportunity.urlFrom}</a>
+                                            <a href={link.urlFrom} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">{link.urlFrom}</a>
                                         </TableCell>
-                                        <TableCell>{opportunity.anchorContext}</TableCell>
+                                        <TableCell>
+                                            <a href={link.urlTo} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">{link.urlTo}</a>
+                                        </TableCell>
+                                        <TableCell>{link.anchor}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -165,4 +111,4 @@ const DiscoverOpportunitiesPage = () => {
     );
 };
 
-export default DiscoverOpportunitiesPage;
+export default IdentifyHyperlinksPage;
