@@ -2,14 +2,12 @@
 
 import {useState} from 'react';
 import type {Link, WebflowItem} from '@/types';
-import {filterByDateRange, getUrlVariations, normalizeUrl, validateUrl} from '@/lib/utils';
+import {getUrlVariations, normalizeUrl, validateUrl} from '@/lib/utils';
 import {useWebflowData} from '@/context/WebflowDataContext';
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {Input} from "@/components/ui/input";
 import {Button} from "@/components/ui/button";
-import {DateRangePicker} from '@/components/ui/date-picker-range';
-import type {DateRange} from 'react-day-picker';
 
 const BASE_URL = 'https://www.infinitepay.io/blog/';
 
@@ -17,7 +15,6 @@ const IdentifyHyperlinksPage = () => {
     const { webflowData } = useWebflowData();
     const [targetUrl, setTargetUrl] = useState<string>('');
     const [existingLinks, setExistingLinks] = useState<Link[]>([]);
-    const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string>('');
 
     const identifyExistingHyperlinks = () => {
@@ -38,6 +35,8 @@ const IdentifyHyperlinksPage = () => {
                 return;
             }
 
+            console.log('URL variations:', urlVariations);
+
             const links = webflowData.flatMap((item: WebflowItem) => {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(item.fieldData['post-body'], 'text/html');
@@ -49,20 +48,16 @@ const IdentifyHyperlinksPage = () => {
                         anchor: link.textContent || '',
                         completeUrl: link.href,
                         urlTo: link.href,
-                        lastUpdated: item.lastUpdated,
+                        lastUpdated: item.lastUpdated // Aqui adicionamos a propriedade `lastUpdated`
                     }));
             });
 
-            if (dateRange?.from && dateRange?.to) {
-                setExistingLinks(filterByDateRange(links, { from: dateRange.from, to: dateRange.to }, "lastUpdated"));
-            } else {
-                setExistingLinks(links);
-            }
+            console.log('Identified links:', links);
 
             if (!links.length) {
                 setErrorMessage('No links found matching the URL.');
             } else {
-                setErrorMessage('');
+                setExistingLinks(links);
             }
         } catch (error) {
             console.error('Error in identifyExistingHyperlinks:', error);
@@ -79,8 +74,7 @@ const IdentifyHyperlinksPage = () => {
                 </CardHeader>
                 <CardContent>
                     <div className="flex flex-col gap-4 mb-4">
-                        <Input value={targetUrl} onChange={(e) => setTargetUrl(e.target.value)} placeholder="Enter target URL to identify" type="text" className="p-2 border border-gray-700 rounded bg-gray-800 text-white" />
-                        <DateRangePicker range={dateRange} setRange={setDateRange} />
+                        <Input value={targetUrl} onChange={(e) => setTargetUrl(e.target.value)} placeholder="Enter target URL" type="text" className="p-2 border border-gray-700 rounded bg-gray-800 text-white" />
                         <Button onClick={identifyExistingHyperlinks} className="bg-gray-700 text-white hover:bg-gray-600">Identify hyperlinks</Button>
                         {errorMessage && <p className="text-red-500">{errorMessage}</p>}
                     </div>
@@ -91,24 +85,21 @@ const IdentifyHyperlinksPage = () => {
                                     <TableHead>From URL</TableHead>
                                     <TableHead>To URL</TableHead>
                                     <TableHead>Anchor</TableHead>
-                                    <TableHead>Last Updated</TableHead>
                                 </TableRow>
                             </TableHeader>
-<TableBody>
-    {existingLinks.map((link) => (
-        <TableRow key={link.completeUrl}>
-            <TableCell>
-                <a href={link.urlFrom} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">{link.urlFrom}</a>
-            </TableCell>
-            <TableCell>
-                <a href={link.urlTo} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">{link.urlTo}</a>
-            </TableCell>
-            <TableCell>{link.anchor}</TableCell>
-            <TableCell>{link.lastUpdated}</TableCell>
-        </TableRow>
-    ))}
-</TableBody>
-
+                            <TableBody>
+                                {existingLinks.map((link) => (
+                                    <TableRow key={link.completeUrl}>
+                                        <TableCell>
+                                            <a href={link.urlFrom} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">{link.urlFrom}</a>
+                                        </TableCell>
+                                        <TableCell>
+                                            <a href={link.urlTo} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">{link.urlTo}</a>
+                                        </TableCell>
+                                        <TableCell>{link.anchor}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
                         </Table>
                     )}
                 </CardContent>

@@ -73,14 +73,7 @@ export const getUrlVariations = (url: string): string[] => {
 };
 
 
-export function filterByDateRange<T>(
-    data: T[],
-    range: { from: Date; to: Date },
-    key: keyof T
-): T[] {
-  const { from, to } = range;
-  return data.filter((item) => {
-    const date = new Date(item[key] as unknown as string);
-    return date >= from && date <= to;
-  });
+export function formatDate(dateString: string): string {
+  const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+  return new Date(dateString).toLocaleDateString(undefined, options);
 }
