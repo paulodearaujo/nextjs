@@ -6,8 +6,7 @@ import {TooltipProvider} from "@/components/ui/tooltip";
 import {WebflowDataProvider} from "@/context/WebflowDataContext";
 import type {ReactNode} from "react";
 import ClientOnly from "@/components/ClientOnly";
-import {Analytics} from "@vercel/analytics/react"
-import {SpeedInsights} from "@vercel/speed-insights/next"
+
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -32,8 +31,6 @@ export default function RootLayout({
             <main className="flex-grow flex flex-col p-4">{children}</main>
           </WebflowDataProvider>
         </TooltipProvider>
-      <Analytics/>
-      <SpeedInsights/>
       </body>
     </html>
     );

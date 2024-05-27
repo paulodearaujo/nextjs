@@ -1,17 +1,13 @@
-// pages/settings.tsx
 "use client";
 
 import {useCallback, useEffect, useState} from 'react';
 import {getAllBackups, getBackupData, getLastBackupDate, saveBackupToSupabase} from '@/lib/supabase';
 import {fetchWebflowData} from '@/lib/webflow';
-import type {WebflowResponse} from '@/types';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
-import {Button} from "@/components/ui/button";
-import {useRouter} from 'next/router';
+import {Button} from '@/components/ui/button'; // Corrigir o caminho do import
+import type {WebflowResponse} from '@/types';
 
 const SettingsPage = () => {
-    const router = useRouter();
-    const { access_token } = router.query;
     const [lastBackupDate, setLastBackupDate] = useState<Date | null>(null);
     const [backups, setBackups] = useState<{ id: number; created_at: Date }[]>([]);
     const [backupData, setBackupData] = useState<WebflowResponse | null>(null);
@@ -45,10 +41,11 @@ const SettingsPage = () => {
         setSuccessMessage('');
 
         try {
-            if (!access_token) {
+            const accessToken = localStorage.getItem('webflow_access_token');
+            if (!accessToken) {
                 throw new Error('Missing access token');
             }
-            const data = await fetchWebflowData(access_token as string);
+            const data = await fetchWebflowData(accessToken);
             await saveBackupToSupabase(data);
             setSuccessMessage('Backup completed successfully.');
             await fetchLastBackupDate();
@@ -59,7 +56,7 @@ const SettingsPage = () => {
         } finally {
             setIsBackingUp(false);
         }
-    }, [fetchLastBackupDate, fetchAllBackups, access_token]);
+    }, [fetchLastBackupDate, fetchAllBackups]);
 
     const handleViewBackup = useCallback(async (id: number) => {
         try {
