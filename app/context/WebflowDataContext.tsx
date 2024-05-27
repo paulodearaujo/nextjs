@@ -43,7 +43,7 @@ export const WebflowDataProvider = ({ children }: { children: ReactNode }) => {
         fetchWebflowItems().catch(error => {
             console.error('Error in useEffect while fetching Webflow items:', error);
         });
-    }, [fetchWebflowItems]); // Add fetchWebflowItems to the dependency array
+    }, [fetchWebflowItems]);
 
     return (
         <WebflowDataContext.Provider value={{ webflowData, fetchWebflowItems }}>

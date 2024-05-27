@@ -20,19 +20,17 @@ const DiscoverOpportunitiesPage = () => {
     const [isSearching, setIsSearching] = useState<boolean>(false);
 
     useEffect(() => {
-        if (isSearching) {
+        const discoverHyperlinkOpportunities = async () => {
             try {
                 if (!targetUrl.trim()) {
                     setErrorMessage('Please provide a valid URL.');
                     console.log('Erro: URL vazia ou inválida.');
-                    setIsSearching(false);
                     return;
                 }
 
                 if (!validateUrl(targetUrl)) {
                     setErrorMessage('Invalid URL provided.');
                     console.log('Erro: URL fornecida é inválida.');
-                    setIsSearching(false);
                     return;
                 }
 
@@ -40,7 +38,6 @@ const DiscoverOpportunitiesPage = () => {
                 if (!normalizedTargetUrl) {
                     setErrorMessage('URL normalization failed.');
                     console.log('Erro: Falha na normalização da URL.');
-                    setIsSearching(false);
                     return;
                 }
 
@@ -48,7 +45,6 @@ const DiscoverOpportunitiesPage = () => {
 
                 if (!anchorPotentials.trim()) {
                     setErrorMessage('No anchor potentials provided.');
-                    setIsSearching(false);
                     return;
                 }
 
@@ -57,7 +53,6 @@ const DiscoverOpportunitiesPage = () => {
 
                 if (anchors.length === 0) {
                     setErrorMessage('No valid anchors provided.');
-                    setIsSearching(false);
                     return;
                 }
 
@@ -94,13 +89,6 @@ const DiscoverOpportunitiesPage = () => {
 
                         for (const match of matches) {
                             if (match.index !== undefined) {
-                                // Skip if the match is within an anchor tag
-                                const surroundingHTML = text.substring(Math.max(0, match.index - 30), Math.min(text.length, match.index + 30));
-                                if (surroundingHTML.includes('<a')) {
-                                    console.log(`Match within an anchor tag, skipping: ${surroundingHTML}`);
-                                    continue;
-                                }
-
                                 const contextStart = Math.max(0, match.index - 30);
                                 const contextEnd = Math.min(text.length, match.index + 30);
                                 const anchorContext = text.substring(contextStart, contextEnd).replace(/\n/g, ' ').trim();
@@ -111,7 +99,7 @@ const DiscoverOpportunitiesPage = () => {
                                         urlFrom: itemUrl,
                                         anchorContext: anchorContext,
                                         completeUrl: itemUrl,
-                                        lastUpdated: item.lastUpdated // Aqui adicionamos a propriedade `lastUpdated`
+                                        lastUpdated: item.lastUpdated
                                     });
                                     usedUrls.add(itemUrl);
                                 }
@@ -135,17 +123,16 @@ const DiscoverOpportunitiesPage = () => {
             } finally {
                 setIsSearching(false);
             }
+        };
+
+        if (isSearching) {
+            discoverHyperlinkOpportunities();
         }
-    }, [isSearching, targetUrl, anchorPotentials, webflowData]); // Adicionar todas as dependências necessárias
+    }, [isSearching, targetUrl, anchorPotentials, webflowData]);
 
     const initiateSearch = () => {
-        // Limpar estados anteriores antes de iniciar uma nova busca
-        console.log('Antes de limpar o estado:', { hyperlinkOpportunities, errorMessage, anchorPotentials });
         setHyperlinkOpportunities([]);
         setErrorMessage('');
-        setAnchorPotentials('');
-        console.log('Estado limpo: hyperlinkOpportunities, errorMessage e anchorPotentials resetados.');
-        console.log('Depois de limpar o estado:', { hyperlinkOpportunities, errorMessage, anchorPotentials });
         setIsSearching(true);
     };
 
@@ -158,8 +145,20 @@ const DiscoverOpportunitiesPage = () => {
                 </CardHeader>
                 <CardContent>
                     <div className="flex flex-col gap-4 mb-4">
-                        <Input value={targetUrl} onChange={(e) => setTargetUrl(e.target.value)} placeholder="Enter target URL for opportunities" type="text" className="p-2 border border-gray-700 rounded bg-gray-800 text-white" />
-                        <Input value={anchorPotentials} onChange={(e) => setAnchorPotentials(e.target.value)} placeholder="Enter potential anchors, separated by commas" type="text" className="p-2 border border-gray-700 rounded bg-gray-800 text-white" />
+                        <Input
+                            value={targetUrl}
+                            onChange={(e) => setTargetUrl(e.target.value)}
+                            placeholder="Enter target URL for opportunities"
+                            type="text"
+                            className="p-2 border border-gray-700 rounded bg-gray-800 text-white"
+                        />
+                        <Input
+                            value={anchorPotentials}
+                            onChange={(e) => setAnchorPotentials(e.target.value)}
+                            placeholder="Enter potential anchors, separated by commas"
+                            type="text"
+                            className="p-2 border border-gray-700 rounded bg-gray-800 text-white"
+                        />
                         <Button onClick={initiateSearch} className="bg-gray-700 text-white hover:bg-gray-600">Discover opportunities</Button>
                         {errorMessage && <p className="text-red-500">{errorMessage}</p>}
                     </div>
