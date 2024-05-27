@@ -2,14 +2,18 @@ import type {WebflowItem, WebflowResponse} from '@/types';
 
 const API_URL = "https://api.webflow.com/v2/collections";
 
-export const getAccessToken = async (authCode: string): Promise<string> => {
-    const clientId = process.env.NEXT_PUBLIC_WEBFLOW_CLIENT_ID;
-    const clientSecret = process.env.WEBFLOW_CLIENT_SECRET;
-    const redirectUri = process.env.NEXT_PUBLIC_REDIRECT_URI;
-
-    if (!clientId || !clientSecret || !redirectUri) {
-        throw new Error('Missing environment variables for Webflow API');
+const getEnvVariable = (key: string): string => {
+    const value = process.env[key];
+    if (!value) {
+        throw new Error(`Missing environment variable: ${key}`);
     }
+    return value;
+};
+
+export const getAccessToken = async (authCode: string): Promise<string> => {
+    const clientId = getEnvVariable('NEXT_PUBLIC_WEBFLOW_CLIENT_ID');
+    const clientSecret = getEnvVariable('WEBFLOW_CLIENT_SECRET');
+    const redirectUri = getEnvVariable('NEXT_PUBLIC_REDIRECT_URI');
 
     const tokenUrl = 'https://api.webflow.com/oauth/access_token';
     const body = new URLSearchParams({
@@ -37,8 +41,7 @@ export const getAccessToken = async (authCode: string): Promise<string> => {
     return tokenData.access_token;
 };
 
-export const fetchAllItems = async (collectionId: string, authCode: string): Promise<WebflowItem[]> => {
-    const accessToken = await getAccessToken(authCode);
+export const fetchAllItems = async (collectionId: string, accessToken: string): Promise<WebflowItem[]> => {
     const limit = 100;
     let offset = 0;
     let allItems: WebflowItem[] = [];
@@ -108,4 +111,3 @@ export const fetchWebflowData = async (accessToken: string): Promise<WebflowResp
         throw new Error('An unexpected error occurred while fetching data from Webflow');
     }
 };
-
