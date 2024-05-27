@@ -76,8 +76,7 @@ export const fetchAllItems = async (collectionId: string, authCode: string): Pro
     return allItems;
 };
 
-export const fetchWebflowData = async (authCode: string): Promise<WebflowResponse> => {
-    const accessToken = await getAccessToken(authCode);
+export const fetchWebflowData = async (accessToken: string): Promise<WebflowResponse> => {
     const proxyUrl = '/api/webflow-proxy';
     console.log('Fetching data from proxy:', proxyUrl);
 
@@ -109,3 +108,4 @@ export const fetchWebflowData = async (authCode: string): Promise<WebflowRespons
         throw new Error('An unexpected error occurred while fetching data from Webflow');
     }
 };
+
