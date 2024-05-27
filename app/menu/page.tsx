@@ -26,7 +26,7 @@ const MenuPage = () => {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="flex justify-center space-x-4">
-                    <Link href={{ pathname: '/identify-hyperlinks' }}>
+                        <Link href={{ pathname: '/identify-hyperlinks' }}>
                         <Button className="bg-gray-700 text-white hover:bg-gray-600">Identify existing hyperlinks</Button>
                     </Link>
                     <Link href={{ pathname: '/discover-opportunities' }}>
