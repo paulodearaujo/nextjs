@@ -4,20 +4,20 @@ import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/compo
 import {useWebflowData} from '@/context/WebflowDataContext';
 
 const MenuPage = () => {
-  const { fetchWebflowItems } = useWebflowData();
+    const { fetchWebflowItems } = useWebflowData();
 
-  const handleUpdateData = async () => {
-    try {
-      await fetchWebflowItems();
-      alert('Data updated successfully.');
-    } catch (error) {
-      console.error('Error updating data:', error);
-      alert('Failed to update data.');
-    }
-  };
+    const handleUpdateData = async () => {
+        try {
+            await fetchWebflowItems();
+            alert('Data updated successfully.');
+        } catch (error) {
+            console.error('Error updating data:', error);
+            alert('Failed to update data.');
+        }
+    };
 
-  return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
+    return (
+        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
             <Card className="w-full max-w-4xl mx-auto shadow-lg rounded-lg bg-gray-800 text-white">
                 <CardHeader>
                     <CardTitle className="text-2xl font-bold text-center mb-4">Menu</CardTitle>
@@ -38,7 +38,7 @@ const MenuPage = () => {
                 </CardContent>
             </Card>
         </div>
-  );
+    );
 };
 
 export default MenuPage;

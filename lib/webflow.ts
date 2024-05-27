@@ -2,18 +2,14 @@ import type {WebflowItem, WebflowResponse} from '@/types';
 
 const API_URL = "https://api.webflow.com/v2/collections";
 
-const getEnvVariable = (key: string): string => {
-    const value = process.env[key];
-    if (!value) {
-        throw new Error(`Missing environment variable: ${key}`);
-    }
-    return value;
-};
+const getAccessToken = async (authCode: string): Promise<string> => {
+    const clientId = process.env.NEXT_PUBLIC_WEBFLOW_CLIENT_ID;
+    const clientSecret = process.env.WEBFLOW_CLIENT_SECRET;
+    const redirectUri = process.env.NEXT_PUBLIC_REDIRECT_URI;
 
-export const getAccessToken = async (authCode: string): Promise<string> => {
-    const clientId = getEnvVariable('NEXT_PUBLIC_WEBFLOW_CLIENT_ID');
-    const clientSecret = getEnvVariable('WEBFLOW_CLIENT_SECRET');
-    const redirectUri = getEnvVariable('NEXT_PUBLIC_REDIRECT_URI');
+    if (!clientId || !clientSecret || !redirectUri) {
+        throw new Error('Missing environment variables for Webflow API');
+    }
 
     const tokenUrl = 'https://api.webflow.com/oauth/access_token';
     const body = new URLSearchParams({
@@ -41,7 +37,8 @@ export const getAccessToken = async (authCode: string): Promise<string> => {
     return tokenData.access_token;
 };
 
-export const fetchAllItems = async (collectionId: string, accessToken: string): Promise<WebflowItem[]> => {
+export const fetchAllItems = async (collectionId: string, authCode: string): Promise<WebflowItem[]> => {
+    const accessToken = await getAccessToken(authCode);
     const limit = 100;
     let offset = 0;
     let allItems: WebflowItem[] = [];
@@ -79,7 +76,8 @@ export const fetchAllItems = async (collectionId: string, accessToken: string): 
     return allItems;
 };
 
-export const fetchWebflowData = async (accessToken: string): Promise<WebflowResponse> => {
+export const fetchWebflowData = async (authCode: string): Promise<WebflowResponse> => {
+    const accessToken = await getAccessToken(authCode);
     const proxyUrl = '/api/webflow-proxy';
     console.log('Fetching data from proxy:', proxyUrl);
 

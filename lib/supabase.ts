@@ -1,16 +1,13 @@
 import {createClient} from '@supabase/supabase-js';
 import type {WebflowResponse} from '@/types';
 
-const getEnvVariable = (key: string): string => {
-    const value = process.env[key];
-    if (!value) {
-        throw new Error(`Missing environment variable: ${key}`);
-    }
-    return value;
-};
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-const supabaseUrl = getEnvVariable('NEXT_PUBLIC_SUPABASE_URL');
-const supabaseKey = getEnvVariable('NEXT_PUBLIC_SUPABASE_ANON_KEY');
+if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Missing Supabase environment variables.');
+}
+
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
 export const saveBackupToSupabase = async (data: WebflowResponse): Promise<void> => {
