@@ -2,7 +2,7 @@ import type {WebflowItem, WebflowResponse} from '@/types';
 
 const API_URL = "https://api.webflow.com/v2/collections";
 
-const getAccessToken = async (authCode: string): Promise<string> => {
+export const getAccessToken = async (authCode: string): Promise<string> => {
     const clientId = process.env.NEXT_PUBLIC_WEBFLOW_CLIENT_ID;
     const clientSecret = process.env.WEBFLOW_CLIENT_SECRET;
     const redirectUri = process.env.NEXT_PUBLIC_REDIRECT_URI;
