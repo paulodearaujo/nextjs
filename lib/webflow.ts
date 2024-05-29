@@ -2,8 +2,6 @@ import type {WebflowItem, WebflowResponse} from '@/types';
 import {getSpecificItem} from './supabase';
 
 const API_URL = "https://api.webflow.com/v2/collections";
-const WEBFLOW_API_URL = "https://api.webflow.com/v2";
-const WEBFLOW_ACCESS_TOKEN = process.env.WEBFLOW_ACCESS_TOKEN;
 
 const getEnvVariable = (key: string): string => {
     const value = process.env[key];
@@ -115,18 +113,20 @@ export const fetchWebflowData = async (accessToken: string): Promise<WebflowResp
     }
 };
 
-export const sendItemToWebflow = async (itemId: string): Promise<void> => {
+export const sendItemToWebflow = async (itemId: string, targetUrl: string, anchor: string): Promise<void> => {
     const item = await getSpecificItem(itemId);
 
     if (!item) {
         throw new Error('Item not found');
     }
 
+    const updatedBody = item.fieldData['post-body'].replace(new RegExp(`\\b${anchor}\\b`, 'gi'), `<a href="${targetUrl}">${anchor}</a>`);
+
     const updatedItem = {
         ...item,
         fieldData: {
             ...item.fieldData,
-            'post-body': item.fieldData['post-body'].replace(/(href="https?:\/\/.*?")/g, `href="${WEBFLOW_API_URL}"`)
+            'post-body': updatedBody
         },
         lastPublished: new Date().toISOString(),
         lastUpdated: new Date().toISOString()
@@ -137,7 +137,6 @@ export const sendItemToWebflow = async (itemId: string): Promise<void> => {
         headers: {
             accept: 'application/json',
             'content-type': 'application/json',
-            authorization: `Bearer ${WEBFLOW_ACCESS_TOKEN}`,
         },
         body: JSON.stringify({
             isArchived: false,
@@ -150,7 +149,7 @@ export const sendItemToWebflow = async (itemId: string): Promise<void> => {
         })
     };
 
-    const response = await fetch(`${WEBFLOW_API_URL}/collections/YOUR_COLLECTION_ID/items/${itemId}`, options);
+    const response = await fetch(`/api/webflow-proxy?itemId=${itemId}`, options);
 
     if (!response.ok) {
         const errorData = await response.json();
@@ -172,7 +171,6 @@ export const restoreItemToWebflow = async (itemId: string): Promise<void> => {
         headers: {
             accept: 'application/json',
             'content-type': 'application/json',
-            authorization: `Bearer ${WEBFLOW_ACCESS_TOKEN}`,
         },
         body: JSON.stringify({
             isArchived: false,
@@ -185,7 +183,7 @@ export const restoreItemToWebflow = async (itemId: string): Promise<void> => {
         })
     };
 
-    const response = await fetch(`${WEBFLOW_API_URL}/collections/YOUR_COLLECTION_ID/items/${itemId}`, options);
+    const response = await fetch(`/api/webflow-proxy?itemId=${itemId}`, options);
 
     if (!response.ok) {
         const errorData = await response.json();

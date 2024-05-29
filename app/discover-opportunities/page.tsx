@@ -21,6 +21,7 @@ const DiscoverOpportunitiesPage = () => {
     const [isSearching, setIsSearching] = useState<boolean>(false);
     const [loading, setLoading] = useState<{ [key: string]: boolean }>({});
     const [successMessage, setSuccessMessage] = useState<string>('');
+    const [sentBacklink, setSentBacklink] = useState<{ [key: string]: boolean }>({});
 
     const validateAndNormalizeUrl = useCallback((url: string) => {
         if (!url.trim()) {
@@ -142,10 +143,11 @@ const DiscoverOpportunitiesPage = () => {
         setIsSearching(true);
     };
 
-    const handleSendBacklink = async (itemId: string) => {
+    const handleSendBacklink = async (itemId: string, targetUrl: string, anchor: string) => {
         setLoading(prev => ({ ...prev, [itemId]: true }));
         try {
-            await sendItemToWebflow(itemId);
+            await sendItemToWebflow(itemId, targetUrl, anchor);
+            setSentBacklink(prev => ({ ...prev, [itemId]: true }));
             setSuccessMessage('Backlink sent successfully.');
         } catch (error) {
             console.error('Error sending backlink:', error);
@@ -214,12 +216,14 @@ const DiscoverOpportunitiesPage = () => {
                                         </TableCell>
                                         <TableCell>{opportunity.anchorContext}</TableCell>
                                         <TableCell>
-                                            <Button onClick={() => handleSendBacklink(opportunity.id)} className="bg-blue-700 text-white hover:bg-blue-600" disabled={loading[opportunity.id]}>
+                                            <Button onClick={() => handleSendBacklink(opportunity.id, targetUrl, anchorPotentials)} className="bg-blue-700 text-white hover:bg-blue-600" disabled={loading[opportunity.id]}>
                                                 {loading[opportunity.id] ? 'Sending...' : 'Send Backlink'}
                                             </Button>
-                                            <Button onClick={() => handleRestoreItem(opportunity.id)} className="bg-green-700 text-white hover:bg-green-600 ml-2" disabled={loading[opportunity.id]}>
-                                                {loading[opportunity.id] ? 'Restoring...' : 'Restore Item'}
-                                            </Button>
+                                            {sentBacklink[opportunity.id] && (
+                                                <Button onClick={() => handleRestoreItem(opportunity.id)} className="bg-green-700 text-white hover:bg-green-600 ml-2" disabled={loading[opportunity.id]}>
+                                                    {loading[opportunity.id] ? 'Restoring...' : 'Restore Item'}
+                                                </Button>
+                                            )}
                                         </TableCell>
                                     </TableRow>
                                 ))}
