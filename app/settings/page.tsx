@@ -4,7 +4,7 @@ import {useCallback, useEffect, useState} from 'react';
 import {getAllBackups, getBackupData, getLastBackupDate, saveBackupToSupabase} from '@/lib/supabase';
 import {fetchWebflowData} from '@/lib/webflow';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
-import {Button} from '@/components/ui/button'; // Corrigir o caminho do import
+import {Button} from '@/components/ui/button';
 import type {WebflowResponse} from '@/types';
 
 const SettingsPage = () => {

@@ -13,8 +13,8 @@ export const supabase = createClient(supabaseUrl, supabaseKey);
 export const saveBackupToSupabase = async (data: WebflowResponse): Promise<void> => {
     const { error } = await supabase.from('webflow_backups').insert([
         {
-            data: JSON.stringify(data),
-            created_at: new Date(),
+            data: JSON.stringify(data.items), // Salva apenas a lista de itens
+            created_at: new Date().toISOString(), // Usa ISO string format para created_at
         },
     ]);
 
