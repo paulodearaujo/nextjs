@@ -145,11 +145,14 @@ export const sendItemToWebflow = async (itemId: string, targetUrl: string, ancho
         body: JSON.stringify({
             isArchived: false,
             isDraft: false,
-            fields: updatedItem.fieldData
+            fields: updatedItem.fieldData // Adjusting to Webflow API specification
         })
     };
 
     console.log('Sending PATCH request with options:', options);
+
+    // Log the data being sent in the PATCH request
+    console.log('PATCH request body:', options.body);
 
     const response = await fetch(`${API_URL}/${collectionId}/items/${itemId}`, options);
 
@@ -186,6 +189,8 @@ export const restoreItemToWebflow = async (itemId: string): Promise<void> => {
     };
 
     console.log('Sending PATCH request with options:', options);
+
+    console.log('PATCH request body:', options.body);
 
     const response = await fetch(`${API_URL}/${collectionId}/items/${itemId}`, options);
 
