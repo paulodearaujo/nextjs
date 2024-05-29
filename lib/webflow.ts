@@ -1,8 +1,6 @@
 import type {WebflowItem, WebflowResponse} from '@/types';
 import {getSpecificItem} from './supabase';
 
-const API_URL = "https://api.webflow.com/v2/collections";
-
 const getEnvVariable = (key: string): string => {
     const value = process.env[key];
     if (!value) {
@@ -11,12 +9,14 @@ const getEnvVariable = (key: string): string => {
     return value;
 };
 
+const API_URL = getEnvVariable('NEXT_PUBLIC_WEBFLOW_API_URL');
+
 export const getAccessToken = async (authCode: string): Promise<string> => {
     const clientId = getEnvVariable('NEXT_PUBLIC_WEBFLOW_CLIENT_ID');
     const clientSecret = getEnvVariable('WEBFLOW_CLIENT_SECRET');
     const redirectUri = getEnvVariable('NEXT_PUBLIC_REDIRECT_URI');
+    const tokenUrl = getEnvVariable('NEXT_PUBLIC_WEBFLOW_TOKEN_URL');
 
-    const tokenUrl = 'https://api.webflow.com/oauth/access_token';
     const body = new URLSearchParams({
         client_id: clientId,
         client_secret: clientSecret,
@@ -50,7 +50,7 @@ export const fetchAllItems = async (collectionId: string, accessToken: string): 
 
     try {
         while (hasMoreItems) {
-            const response = await fetch(`${API_URL}/${collectionId}/items?offset=${offset}&limit=${limit}`, {
+            const response = await fetch(`${API_URL}/collections/${collectionId}/items?offset=${offset}&limit=${limit}`, {
                 method: 'GET',
                 headers: {
                     accept: 'application/json',
@@ -81,7 +81,7 @@ export const fetchAllItems = async (collectionId: string, accessToken: string): 
 };
 
 export const fetchWebflowData = async (accessToken: string): Promise<WebflowResponse> => {
-    const proxyUrl = '/api/webflow-proxy';
+    const proxyUrl = getEnvVariable('NEXT_PUBLIC_WEBFLOW_PROXY_URL');
     console.log('Fetching data from proxy:', proxyUrl);
 
     try {
@@ -154,7 +154,7 @@ export const sendItemToWebflow = async (itemId: string, targetUrl: string, ancho
     // Log the data being sent in the PATCH request
     console.log('PATCH request body:', options.body);
 
-    const response = await fetch(`${API_URL}/${collectionId}/items/${itemId}`, options);
+    const response = await fetch(`${API_URL}/collections/${collectionId}/items/${itemId}`, options);
 
     if (!response.ok) {
         const errorData = await response.json();
@@ -192,7 +192,7 @@ export const restoreItemToWebflow = async (itemId: string): Promise<void> => {
 
     console.log('PATCH request body:', options.body);
 
-    const response = await fetch(`${API_URL}/${collectionId}/items/${itemId}`, options);
+    const response = await fetch(`${API_URL}/collections/${collectionId}/items/${itemId}`, options);
 
     if (!response.ok) {
         const errorData = await response.json();
