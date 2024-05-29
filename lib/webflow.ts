@@ -133,7 +133,7 @@ export const sendItemToWebflow = async (itemId: string, targetUrl: string, ancho
     };
 
     const accessToken = localStorage.getItem('webflow_access_token'); // Ensure this is being retrieved correctly
-    const collectionId = getEnvVariable('NEXT_PUBLIC_WEBFLOW_COLLECTION_ID');
+    const collectionId = getEnvVariable('WEBFLOW_COLLECTION_ID');
 
     const options = {
         method: 'PATCH',
@@ -172,7 +172,7 @@ export const restoreItemToWebflow = async (itemId: string): Promise<void> => {
     }
 
     const accessToken = localStorage.getItem('webflow_access_token'); // Ensure this is being retrieved correctly
-    const collectionId = getEnvVariable('NEXT_PUBLIC_WEBFLOW_COLLECTION_ID');
+    const collectionId = getEnvVariable('WEBFLOW_COLLECTION_ID');
 
     const options = {
         method: 'PATCH',
