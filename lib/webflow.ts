@@ -58,6 +58,7 @@ export const fetchAllItems = async (collectionId: string, accessToken: string): 
                     authorization: `Bearer ${accessToken}`,
                 },
             });
+            console.log('fetchAllItems Access Token:', response);
 
             if (!response.ok) {
                 const errorResponse = await response.json();
@@ -94,6 +95,8 @@ export const fetchWebflowData = async (accessToken: string): Promise<WebflowResp
                 Authorization: `Bearer ${accessToken}`,
             },
         });
+        console.log('fetchWebflowData Access Token:', accessToken);
+
 
         if (!response.ok) {
             const errorText = await response.text();
@@ -138,7 +141,7 @@ export const sendItemToWebflow = async (itemId: string, targetUrl: string, ancho
         headers: {
             accept: 'application/json',
             'content-type': 'application/json',
-            Authorization: `Bearer ${process.env.WEBFLOW_ACCESS_TOKEN}`, // Utiliza a variável de ambiente para o token
+            Authorization: `Bearer ${WEBFLOW_ACCESS_TOKEN}`, // Utilize a variável de ambiente para o token
         },
         body: JSON.stringify({
             isArchived: false,
@@ -146,6 +149,7 @@ export const sendItemToWebflow = async (itemId: string, targetUrl: string, ancho
             fields: updatedItem.fieldData,
         })
     };
+    console.log('sendItemToWebflow Access Token:', options);
 
     try {
         const proxyUrl = `/api/webflow-proxy?itemId=${itemId}`;
@@ -176,7 +180,7 @@ export const restoreItemToWebflow = async (itemId: string): Promise<void> => {
         headers: {
             accept: 'application/json',
             'content-type': 'application/json',
-            authorization: `Bearer ${WEBFLOW_ACCESS_TOKEN}`,
+            Authorization: `Bearer ${WEBFLOW_ACCESS_TOKEN}`,
         },
         body: JSON.stringify({
             isArchived: false,
@@ -184,9 +188,10 @@ export const restoreItemToWebflow = async (itemId: string): Promise<void> => {
             fields: item.fieldData,
         })
     };
+    console.log('restoreItemToWebflow Access Token:', options);
 
     try {
-        const proxyUrl = `/api/webflow-proxy/${itemId}`;
+        const proxyUrl = `/api/webflow-proxy?itemId=${itemId}`;
         const response = await fetch(proxyUrl, options);
 
         if (!response.ok) {

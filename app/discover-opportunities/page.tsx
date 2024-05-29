@@ -17,7 +17,6 @@ if (!COLLECTION_ID) {
     throw new Error("Missing environment variable: NEXT_PUBLIC_WEBFLOW_COLLECTION_ID");
 }
 
-
 const DiscoverOpportunitiesPage = () => {
     const { webflowData } = useWebflowData();
     const [targetUrl, setTargetUrl] = useState<string>('');
@@ -156,7 +155,7 @@ const DiscoverOpportunitiesPage = () => {
         setLoading(prev => ({ ...prev, [id]: true }));
         try {
             console.log('Sending backlink:', { id, urlFrom, anchor, collectionId: COLLECTION_ID });
-            await sendItemToWebflow(id, urlFrom, anchor, COLLECTION_ID);
+            await sendItemToWebflow(id, urlFrom, anchor);
             setSentBacklink(prev => ({ ...prev, [id]: true }));
         } catch (error) {
             console.error('Error sending backlink:', error);
@@ -166,11 +165,10 @@ const DiscoverOpportunitiesPage = () => {
         }
     };
 
-
     const handleRestoreItem = async (id: string) => {
         setLoading(prev => ({ ...prev, [id]: true }));
         try {
-            await restoreItemToWebflow(id, COLLECTION_ID);
+            await restoreItemToWebflow(id);
             setErrorMessage('');
         } catch (error) {
             console.error('Error restoring item:', error);
