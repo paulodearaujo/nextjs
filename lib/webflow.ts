@@ -6,7 +6,7 @@ const CLIENT_SECRET = process.env.WEBFLOW_CLIENT_SECRET;
 const REDIRECT_URI = process.env.NEXT_PUBLIC_REDIRECT_URI;
 const TOKEN_URL = process.env.NEXT_PUBLIC_WEBFLOW_TOKEN_URL || 'https://api.webflow.com/oauth/access_token';
 const API_URL = process.env.NEXT_PUBLIC_BASE_URL;
-const COLLECTION_ID = process.env.NEXT_PUBLIC_WEBFLOW_COLLECTION_ID || '65c1399ac999a342139b5099';
+const COLLECTION_ID = process.env.NEXT_PUBLIC_WEBFLOW_COLLECTION_ID;
 const PROXY_URL = process.env.NEXT_PUBLIC_WEBFLOW_PROXY_URL || '/api/webflow-proxy';
 
 if (!CLIENT_ID || !CLIENT_SECRET || !REDIRECT_URI || !TOKEN_URL || !API_URL || !COLLECTION_ID || !PROXY_URL) {
@@ -39,7 +39,7 @@ export const getAccessToken = async (authCode: string): Promise<string> => {
     return tokenData.access_token;
 };
 
-export const fetchAllItems = async (accessToken: string): Promise<WebflowItem[]> => {
+export const fetchAllItems = async (collectionId: string, accessToken: string): Promise<WebflowItem[]> => {
     const limit = 100;
     let offset = 0;
     let allItems: WebflowItem[] = [];
@@ -47,7 +47,7 @@ export const fetchAllItems = async (accessToken: string): Promise<WebflowItem[]>
 
     try {
         while (hasMoreItems) {
-            const response = await fetch(`${API_URL}/collections/${COLLECTION_ID}/items?offset=${offset}&limit=${limit}`, {
+            const response = await fetch(`${API_URL}/collections/${collectionId}/items?offset=${offset}&limit=${limit}`, {
                 method: 'GET',
                 headers: {
                     accept: 'application/json',
