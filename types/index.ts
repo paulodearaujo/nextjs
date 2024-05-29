@@ -12,6 +12,7 @@ export interface Opportunity {
     anchorContext: string;
     completeUrl: string;
     lastUpdated: string;
+    collectionId: string;
 }
 
 export interface WebflowItem {

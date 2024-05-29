@@ -68,7 +68,6 @@ export const getUrlVariations = (url: string): string[] => {
     removeQueryParams(noWww.replace(/\/$/, ''))
   ];
 
-  // Remover duplicatas de variações de URL
   return Array.from(new Set(variations));
 };
 

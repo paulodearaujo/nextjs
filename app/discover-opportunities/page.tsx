@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import {useCallback, useEffect, useState} from 'react';
 import type {Opportunity, WebflowItem} from '@/types';
@@ -11,6 +11,16 @@ import {Button} from "@/components/ui/button";
 import {restoreItemToWebflow, sendItemToWebflow} from '@/lib/webflow';
 
 const BASE_URL = 'https://www.infinitepay.io/blog/';
+
+const getEnvVariable = (key: string): string => {
+    const value = process.env[key];
+    if (!value) {
+        throw new Error(`Missing environment variable: ${key}`);
+    }
+    return value;
+};
+
+const COLLECTION_ID = getEnvVariable('NEXT_PUBLIC_WEBFLOW_COLLECTION_ID'); // Adicionei getEnvVariable aqui
 
 const DiscoverOpportunitiesPage = () => {
     const { webflowData } = useWebflowData();
@@ -104,7 +114,8 @@ const DiscoverOpportunitiesPage = () => {
                                     urlFrom: itemUrl,
                                     anchorContext: anchorContext,
                                     completeUrl: itemUrl,
-                                    lastUpdated: item.lastUpdated || '' // Assuming 'lastUpdated' is a valid string field in WebflowItem
+                                    lastUpdated: item.lastUpdated || '',
+                                    collectionId: COLLECTION_ID
                                 });
                                 usedUrls.add(itemUrl);
                             }
@@ -148,7 +159,7 @@ const DiscoverOpportunitiesPage = () => {
     const handleSendBacklink = async (id: string, urlFrom: string, anchor: string) => {
         setLoading(prev => ({ ...prev, [id]: true }));
         try {
-            await sendItemToWebflow(id, urlFrom, anchor);
+            await sendItemToWebflow(id, urlFrom, anchor, COLLECTION_ID);
             setSentBacklink(prev => ({ ...prev, [id]: true }));
         } catch (error) {
             console.error('Error sending backlink:', error);
@@ -161,7 +172,7 @@ const DiscoverOpportunitiesPage = () => {
     const handleRestoreItem = async (id: string) => {
         setLoading(prev => ({ ...prev, [id]: true }));
         try {
-            await restoreItemToWebflow(id);
+            await restoreItemToWebflow(id, COLLECTION_ID);
             setErrorMessage('');
         } catch (error) {
             console.error('Error restoring item:', error);

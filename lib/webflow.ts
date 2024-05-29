@@ -144,11 +144,7 @@ export const sendItemToWebflow = async (itemId: string, targetUrl: string, ancho
         body: JSON.stringify({
             isArchived: false,
             isDraft: false,
-            fieldData: {
-                lastPublished: updatedItem.lastPublished,
-                lastUpdated: updatedItem.lastUpdated,
-                'post-body': updatedItem.fieldData['post-body']
-            }
+            fields: updatedItem.fieldData,
         })
     };
 
@@ -179,11 +175,7 @@ export const restoreItemToWebflow = async (itemId: string, collectionId: string)
         body: JSON.stringify({
             isArchived: false,
             isDraft: false,
-            fieldData: {
-                lastPublished: item.lastPublished,
-                lastUpdated: item.lastUpdated,
-                'post-body': item.fieldData['post-body']
-            }
+            fields: item.fieldData,
         })
     };
 
