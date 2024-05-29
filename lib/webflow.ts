@@ -1,59 +1,33 @@
 import type {WebflowItem, WebflowResponse} from '@/types';
 import {getSpecificItem} from './supabase';
 
-console.log({
-    CLIENT_ID: process.env.NEXT_PUBLIC_WEBFLOW_CLIENT_ID,
-    CLIENT_SECRET: process.env.WEBFLOW_CLIENT_SECRET,
-    REDIRECT_URI: process.env.NEXT_PUBLIC_REDIRECT_URI,
-    TOKEN_URL: process.env.NEXT_PUBLIC_WEBFLOW_TOKEN_URL,
-    API_URL: process.env.NEXT_PUBLIC_BASE_URL,
-    COLLECTION_ID: process.env.NEXT_PUBLIC_WEBFLOW_COLLECTION_ID,
-    PROXY_URL: process.env.NEXT_PUBLIC_WEBFLOW_PROXY_URL,
-});
+const API_URL = "https://api.webflow.com/v2/collections";
+const WEBFLOW_API_URL = "https://api.webflow.com/v2";
+const WEBFLOW_ACCESS_TOKEN = process.env.WEBFLOW_ACCESS_TOKEN;
 
-const CLIENT_ID = process.env.NEXT_PUBLIC_WEBFLOW_CLIENT_ID;
-const CLIENT_SECRET = process.env.WEBFLOW_CLIENT_SECRET;
-const REDIRECT_URI = process.env.NEXT_PUBLIC_REDIRECT_URI;
-const TOKEN_URL = process.env.NEXT_PUBLIC_WEBFLOW_TOKEN_URL || 'https://api.webflow.com/oauth/access_token';
-const API_URL = process.env.NEXT_PUBLIC_BASE_URL;
-const COLLECTION_ID = process.env.NEXT_PUBLIC_WEBFLOW_COLLECTION_ID;
-const PROXY_URL = process.env.NEXT_PUBLIC_WEBFLOW_PROXY_URL || '/api/webflow-proxy';
-
-const requiredEnvVariables = {
-    NEXT_PUBLIC_WEBFLOW_CLIENT_ID: CLIENT_ID,
-    WEBFLOW_CLIENT_SECRET: CLIENT_SECRET,
-    NEXT_PUBLIC_REDIRECT_URI: REDIRECT_URI,
-    NEXT_PUBLIC_WEBFLOW_TOKEN_URL: TOKEN_URL,
-    NEXT_PUBLIC_BASE_URL: API_URL,
-    NEXT_PUBLIC_WEBFLOW_COLLECTION_ID: COLLECTION_ID,
-    NEXT_PUBLIC_WEBFLOW_PROXY_URL: PROXY_URL,
+const getEnvVariable = (key: string): string => {
+    const value = process.env[key];
+    if (!value) {
+        throw new Error(`Missing environment variable: ${key}`);
+    }
+    return value;
 };
 
-function checkEnvVariables(variables: Record<string, string | undefined>) {
-    const missingVariables = [];
-    for (const [key, value] of Object.entries(variables)) {
-        if (!value) {
-            missingVariables.push(key);
-        }
-    }
-
-    if (missingVariables.length > 0) {
-        throw new Error(`Missing necessary environment variables: ${missingVariables.join(', ')}. Existing variables: ${JSON.stringify(variables, null, 2)}`);
-    }
-}
-
-checkEnvVariables(requiredEnvVariables);
-
 export const getAccessToken = async (authCode: string): Promise<string> => {
+    const clientId = getEnvVariable('NEXT_PUBLIC_WEBFLOW_CLIENT_ID');
+    const clientSecret = getEnvVariable('WEBFLOW_CLIENT_SECRET');
+    const redirectUri = getEnvVariable('NEXT_PUBLIC_REDIRECT_URI');
+
+    const tokenUrl = 'https://api.webflow.com/oauth/access_token';
     const body = new URLSearchParams({
-        client_id: CLIENT_ID as string,
-        client_secret: CLIENT_SECRET as string,
+        client_id: clientId,
+        client_secret: clientSecret,
         code: authCode,
         grant_type: 'authorization_code',
-        redirect_uri: REDIRECT_URI as string,
+        redirect_uri: redirectUri,
     });
 
-    const response = await fetch(TOKEN_URL, {
+    const response = await fetch(tokenUrl, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -78,7 +52,7 @@ export const fetchAllItems = async (collectionId: string, accessToken: string): 
 
     try {
         while (hasMoreItems) {
-            const response = await fetch(`${API_URL}/collections/${collectionId}/items?offset=${offset}&limit=${limit}`, {
+            const response = await fetch(`${API_URL}/${collectionId}/items?offset=${offset}&limit=${limit}`, {
                 method: 'GET',
                 headers: {
                     accept: 'application/json',
@@ -109,10 +83,11 @@ export const fetchAllItems = async (collectionId: string, accessToken: string): 
 };
 
 export const fetchWebflowData = async (accessToken: string): Promise<WebflowResponse> => {
-    console.log('Fetching data from proxy:', PROXY_URL);
+    const proxyUrl = '/api/webflow-proxy';
+    console.log('Fetching data from proxy:', proxyUrl);
 
     try {
-        const response = await fetch(PROXY_URL, {
+        const response = await fetch(proxyUrl, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -153,38 +128,35 @@ export const sendItemToWebflow = async (itemId: string, targetUrl: string, ancho
         ...item,
         fieldData: {
             ...item.fieldData,
-            'post-body': updatedBody,
-            lastPublished: new Date().toISOString(),
-            lastUpdated: new Date().toISOString()
-        }
+            'post-body': updatedBody
+        },
+        lastPublished: new Date().toISOString(),
+        lastUpdated: new Date().toISOString()
     };
-
-    const accessToken = localStorage.getItem('webflow_access_token'); // Certifique-se de que isso esteja sendo recuperado corretamente
 
     const options = {
         method: 'PATCH',
         headers: {
             accept: 'application/json',
             'content-type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
+            authorization: `Bearer ${WEBFLOW_ACCESS_TOKEN}`,
         },
         body: JSON.stringify({
             isArchived: false,
             isDraft: false,
-            fields: updatedItem.fieldData
+            fieldData: {
+                lastPublished: updatedItem.lastPublished,
+                lastUpdated: updatedItem.lastUpdated,
+                'post-body': updatedItem.fieldData['post-body']
+            }
         })
     };
 
-    console.log('Sending PATCH request with options:', options);
-
-    // Log the data being sent in the PATCH request
-    console.log('PATCH request body:', options.body);
-
-    const response = await fetch(`${API_URL}/collections/${COLLECTION_ID}/items/${itemId}`, options);
+    const response = await fetch(`${WEBFLOW_API_URL}/collections/{collectionId}/items/${itemId}`, options);
 
     if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(`Failed to send item to Webflow: ${JSON.stringify(errorData)}`);
+        throw new Error(`Failed to send item to Webflow: ${errorData}`);
     }
 
     console.log('Item sent successfully to Webflow');
@@ -197,31 +169,29 @@ export const restoreItemToWebflow = async (itemId: string): Promise<void> => {
         throw new Error('Item not found');
     }
 
-    const accessToken = localStorage.getItem('webflow_access_token'); // Certifique-se de que isso esteja sendo recuperado corretamente
-
     const options = {
         method: 'PATCH',
         headers: {
             accept: 'application/json',
             'content-type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
+            authorization: `Bearer ${WEBFLOW_ACCESS_TOKEN}`,
         },
         body: JSON.stringify({
             isArchived: false,
             isDraft: false,
-            fields: item.fieldData
+            fieldData: {
+                lastPublished: item.lastPublished,
+                lastUpdated: item.lastUpdated,
+                'post-body': item.fieldData['post-body']
+            }
         })
     };
 
-    console.log('Sending PATCH request with options:', options);
-
-    console.log('PATCH request body:', options.body);
-
-    const response = await fetch(`${API_URL}/collections/${COLLECTION_ID}/items/${itemId}`, options);
+    const response = await fetch(`${WEBFLOW_API_URL}/collections/{collectionId}/items/${itemId}`, options);
 
     if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(`Failed to restore item to Webflow: ${JSON.stringify(errorData)}`);
+        throw new Error(`Failed to restore item to Webflow: ${errorData}`);
     }
 
     console.log('Item restored successfully to Webflow');
