@@ -1,14 +1,25 @@
 import type {WebflowItem, WebflowResponse} from '@/types';
 import {getSpecificItem} from './supabase';
-import {API_URL, CLIENT_ID, CLIENT_SECRET, COLLECTION_ID, PROXY_URL, REDIRECT_URI, TOKEN_URL} from './envUtils';
+
+const CLIENT_ID = process.env.NEXT_PUBLIC_WEBFLOW_CLIENT_ID;
+const CLIENT_SECRET = process.env.WEBFLOW_CLIENT_SECRET;
+const REDIRECT_URI = process.env.NEXT_PUBLIC_REDIRECT_URI;
+const TOKEN_URL = process.env.NEXT_PUBLIC_WEBFLOW_TOKEN_URL || 'https://api.webflow.com/oauth/access_token';
+const API_URL = process.env.NEXT_PUBLIC_BASE_URL;
+const COLLECTION_ID = process.env.NEXT_PUBLIC_WEBFLOW_COLLECTION_ID || '65c1399ac999a342139b5099';
+const PROXY_URL = process.env.NEXT_PUBLIC_WEBFLOW_PROXY_URL || '/api/webflow-proxy';
+
+if (!CLIENT_ID || !CLIENT_SECRET || !REDIRECT_URI || !TOKEN_URL || !API_URL || !COLLECTION_ID || !PROXY_URL) {
+    throw new Error('Missing necessary environment variables.');
+}
 
 export const getAccessToken = async (authCode: string): Promise<string> => {
     const body = new URLSearchParams({
-        client_id: CLIENT_ID,
-        client_secret: CLIENT_SECRET,
+        client_id: CLIENT_ID as string,
+        client_secret: CLIENT_SECRET as string,
         code: authCode,
         grant_type: 'authorization_code',
-        redirect_uri: REDIRECT_URI,
+        redirect_uri: REDIRECT_URI as string,
     });
 
     const response = await fetch(TOKEN_URL, {
@@ -28,7 +39,7 @@ export const getAccessToken = async (authCode: string): Promise<string> => {
     return tokenData.access_token;
 };
 
-export const fetchAllItems = async (collectionId: string, accessToken: string): Promise<WebflowItem[]> => {
+export const fetchAllItems = async (accessToken: string): Promise<WebflowItem[]> => {
     const limit = 100;
     let offset = 0;
     let allItems: WebflowItem[] = [];
@@ -117,7 +128,7 @@ export const sendItemToWebflow = async (itemId: string, targetUrl: string, ancho
         }
     };
 
-    const accessToken = localStorage.getItem('webflow_access_token'); // Ensure this is being retrieved correctly
+    const accessToken = localStorage.getItem('webflow_access_token'); // Certifique-se de que isso esteja sendo recuperado corretamente
 
     const options = {
         method: 'PATCH',
@@ -155,7 +166,7 @@ export const restoreItemToWebflow = async (itemId: string): Promise<void> => {
         throw new Error('Item not found');
     }
 
-    const accessToken = localStorage.getItem('webflow_access_token'); // Ensure this is being retrieved correctly
+    const accessToken = localStorage.getItem('webflow_access_token'); // Certifique-se de que isso esteja sendo recuperado corretamente
 
     const options = {
         method: 'PATCH',
