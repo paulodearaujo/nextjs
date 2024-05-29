@@ -1,5 +1,8 @@
 import type {WebflowItem, WebflowResponse} from '@/types';
 import {getSpecificItem} from './supabase';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const API_URL = process.env.NEXT_PUBLIC_WEBFLOW_API_URL;
 const TOKEN_URL = process.env.NEXT_PUBLIC_WEBFLOW_TOKEN_URL;
@@ -7,9 +10,9 @@ const PROXY_URL = process.env.NEXT_PUBLIC_WEBFLOW_PROXY_URL;
 const CLIENT_ID = process.env.NEXT_PUBLIC_WEBFLOW_CLIENT_ID;
 const CLIENT_SECRET = process.env.WEBFLOW_CLIENT_SECRET;
 const REDIRECT_URI = process.env.NEXT_PUBLIC_REDIRECT_URI;
-const collectionId = process.env.NEXT_PUBLIC_WEBFLOW_COLLECTION_ID;
+const COLLECTION_ID = process.env.NEXT_PUBLIC_WEBFLOW_COLLECTION_ID;
 
-if (!API_URL || !TOKEN_URL || !PROXY_URL || !CLIENT_ID || !CLIENT_SECRET || !REDIRECT_URI || !collectionId) {
+if (!API_URL || !TOKEN_URL || !PROXY_URL || !CLIENT_ID || !CLIENT_SECRET || !REDIRECT_URI || !COLLECTION_ID) {
     throw new Error('Missing required environment variables');
 }
 
@@ -128,7 +131,7 @@ export const sendItemToWebflow = async (itemId: string, targetUrl: string, ancho
         }
     };
 
-    const accessToken = localStorage.getItem('webflow_access_token');
+    const accessToken = localStorage.getItem('webflow_access_token'); // Ensure this is being retrieved correctly
 
     const options = {
         method: 'PATCH',
@@ -140,7 +143,7 @@ export const sendItemToWebflow = async (itemId: string, targetUrl: string, ancho
         body: JSON.stringify({
             isArchived: false,
             isDraft: false,
-            fields: updatedItem.fieldData
+            fields: updatedItem.fieldData // Adjusting to Webflow API specification
         })
     };
 
@@ -149,7 +152,7 @@ export const sendItemToWebflow = async (itemId: string, targetUrl: string, ancho
     // Log the data being sent in the PATCH request
     console.log('PATCH request body:', options.body);
 
-    const response = await fetch(`${API_URL}/collections/${collectionId}/items/${itemId}`, options);
+    const response = await fetch(`${API_URL}/collections/${COLLECTION_ID}/items/${itemId}`, options);
 
     if (!response.ok) {
         const errorData = await response.json();
@@ -186,7 +189,7 @@ export const restoreItemToWebflow = async (itemId: string): Promise<void> => {
 
     console.log('PATCH request body:', options.body);
 
-    const response = await fetch(`${API_URL}/collections/${collectionId}/items/${itemId}`, options);
+    const response = await fetch(`${API_URL}/collections/${COLLECTION_ID}/items/${itemId}`, options);
 
     if (!response.ok) {
         const errorData = await response.json();
