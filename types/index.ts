@@ -7,6 +7,7 @@ export interface Link {
 }
 
 export interface Opportunity {
+    id: string;
     urlFrom: string;
     anchorContext: string;
     completeUrl: string;

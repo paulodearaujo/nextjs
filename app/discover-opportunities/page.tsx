@@ -8,6 +8,7 @@ import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/c
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {Input} from "@/components/ui/input";
 import {Button} from "@/components/ui/button";
+import {restoreItemToWebflow, sendItemToWebflow} from '@/lib/webflow';
 
 const BASE_URL = 'https://www.infinitepay.io/blog/';
 
@@ -18,6 +19,8 @@ const DiscoverOpportunitiesPage = () => {
     const [hyperlinkOpportunities, setHyperlinkOpportunities] = useState<Opportunity[]>([]);
     const [errorMessage, setErrorMessage] = useState<string>('');
     const [isSearching, setIsSearching] = useState<boolean>(false);
+    const [loading, setLoading] = useState<{ [key: string]: boolean }>({});
+    const [successMessage, setSuccessMessage] = useState<string>('');
 
     const validateAndNormalizeUrl = useCallback((url: string) => {
         if (!url.trim()) {
@@ -97,6 +100,7 @@ const DiscoverOpportunitiesPage = () => {
 
                             if (!usedUrls.has(itemUrl)) {
                                 acc.push({
+                                    id: item.id, // Certifique-se de que esta propriedade existe em WebflowItem
                                     urlFrom: itemUrl,
                                     anchorContext: anchorContext,
                                     completeUrl: itemUrl,
@@ -128,7 +132,7 @@ const DiscoverOpportunitiesPage = () => {
 
     useEffect(() => {
         if (isSearching) {
-            discoverHyperlinkOpportunities();
+            discoverHyperlinkOpportunities().catch(console.error);
         }
     }, [isSearching, discoverHyperlinkOpportunities]);
 
@@ -136,6 +140,32 @@ const DiscoverOpportunitiesPage = () => {
         setHyperlinkOpportunities([]);
         setErrorMessage('');
         setIsSearching(true);
+    };
+
+    const handleSendBacklink = async (itemId: string) => {
+        setLoading(prev => ({ ...prev, [itemId]: true }));
+        try {
+            await sendItemToWebflow(itemId);
+            setSuccessMessage('Backlink sent successfully.');
+        } catch (error) {
+            console.error('Error sending backlink:', error);
+            setErrorMessage('Failed to send backlink.');
+        } finally {
+            setLoading(prev => ({ ...prev, [itemId]: false }));
+        }
+    };
+
+    const handleRestoreItem = async (itemId: string) => {
+        setLoading(prev => ({ ...prev, [itemId]: true }));
+        try {
+            await restoreItemToWebflow(itemId);
+            setSuccessMessage('Item restored successfully.');
+        } catch (error) {
+            console.error('Error restoring item:', error);
+            setErrorMessage('Failed to restore item.');
+        } finally {
+            setLoading(prev => ({ ...prev, [itemId]: false }));
+        }
     };
 
     return (
@@ -165,6 +195,7 @@ const DiscoverOpportunitiesPage = () => {
                             {isSearching ? 'Searching...' : 'Discover opportunities'}
                         </Button>
                         {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+                        {successMessage && <p className="text-green-500">{successMessage}</p>}
                     </div>
                     {hyperlinkOpportunities.length > 0 && (
                         <Table>
@@ -172,6 +203,7 @@ const DiscoverOpportunitiesPage = () => {
                                 <TableRow>
                                     <TableHead>From URL</TableHead>
                                     <TableHead>Context</TableHead>
+                                    <TableHead>Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -181,6 +213,14 @@ const DiscoverOpportunitiesPage = () => {
                                             <a href={opportunity.urlFrom} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">{opportunity.urlFrom}</a>
                                         </TableCell>
                                         <TableCell>{opportunity.anchorContext}</TableCell>
+                                        <TableCell>
+                                            <Button onClick={() => handleSendBacklink(opportunity.id)} className="bg-blue-700 text-white hover:bg-blue-600" disabled={loading[opportunity.id]}>
+                                                {loading[opportunity.id] ? 'Sending...' : 'Send Backlink'}
+                                            </Button>
+                                            <Button onClick={() => handleRestoreItem(opportunity.id)} className="bg-green-700 text-white hover:bg-green-600 ml-2" disabled={loading[opportunity.id]}>
+                                                {loading[opportunity.id] ? 'Restoring...' : 'Restore Item'}
+                                            </Button>
+                                        </TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>

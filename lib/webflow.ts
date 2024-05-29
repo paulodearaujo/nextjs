@@ -1,6 +1,9 @@
 import type {WebflowItem, WebflowResponse} from '@/types';
+import {getSpecificItem} from './supabase';
 
 const API_URL = "https://api.webflow.com/v2/collections";
+const WEBFLOW_API_URL = "https://api.webflow.com/v2";
+const WEBFLOW_ACCESS_TOKEN = process.env.WEBFLOW_ACCESS_TOKEN;
 
 const getEnvVariable = (key: string): string => {
     const value = process.env[key];
@@ -110,4 +113,84 @@ export const fetchWebflowData = async (accessToken: string): Promise<WebflowResp
         console.error('Unexpected error:', error);
         throw new Error('An unexpected error occurred while fetching data from Webflow');
     }
+};
+
+export const sendItemToWebflow = async (itemId: string): Promise<void> => {
+    const item = await getSpecificItem(itemId);
+
+    if (!item) {
+        throw new Error('Item not found');
+    }
+
+    const updatedItem = {
+        ...item,
+        fieldData: {
+            ...item.fieldData,
+            'post-body': item.fieldData['post-body'].replace(/(href="https?:\/\/.*?")/g, `href="${WEBFLOW_API_URL}"`)
+        },
+        lastPublished: new Date().toISOString(),
+        lastUpdated: new Date().toISOString()
+    };
+
+    const options = {
+        method: 'PATCH',
+        headers: {
+            accept: 'application/json',
+            'content-type': 'application/json',
+            authorization: `Bearer ${WEBFLOW_ACCESS_TOKEN}`,
+        },
+        body: JSON.stringify({
+            isArchived: false,
+            isDraft: false,
+            fieldData: {
+                lastPublished: updatedItem.lastPublished,
+                lastUpdated: updatedItem.lastUpdated,
+                'post-body': updatedItem.fieldData['post-body']
+            }
+        })
+    };
+
+    const response = await fetch(`${WEBFLOW_API_URL}/collections/YOUR_COLLECTION_ID/items/${itemId}`, options);
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Failed to send item to Webflow: ${errorData}`);
+    }
+
+    console.log('Item sent successfully to Webflow');
+};
+
+export const restoreItemToWebflow = async (itemId: string): Promise<void> => {
+    const item = await getSpecificItem(itemId);
+
+    if (!item) {
+        throw new Error('Item not found');
+    }
+
+    const options = {
+        method: 'PATCH',
+        headers: {
+            accept: 'application/json',
+            'content-type': 'application/json',
+            authorization: `Bearer ${WEBFLOW_ACCESS_TOKEN}`,
+        },
+        body: JSON.stringify({
+            isArchived: false,
+            isDraft: false,
+            fieldData: {
+                lastPublished: item.lastPublished,
+                lastUpdated: item.lastUpdated,
+                'post-body': item.fieldData['post-body']
+            }
+        })
+    };
+
+    const response = await fetch(`${WEBFLOW_API_URL}/collections/YOUR_COLLECTION_ID/items/${itemId}`, options);
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Failed to restore item to Webflow: ${errorData}`);
+    }
+
+    console.log('Item restored successfully to Webflow');
 };

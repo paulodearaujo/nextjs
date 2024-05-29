@@ -1,5 +1,5 @@
 import {createClient} from '@supabase/supabase-js';
-import type {WebflowResponse} from '@/types';
+import type {WebflowItem, WebflowResponse} from '@/types';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -68,5 +68,20 @@ export const getBackupData = async (id: number): Promise<WebflowResponse> => {
         throw new Error(`Failed to fetch backup data: ${error.message}`);
     }
 
-    return JSON.parse(data.data);
+    return { items: JSON.parse(data.data) };
+};
+
+export const getSpecificItem = async (itemId: string): Promise<WebflowItem | null> => {
+    const { data, error } = await supabase
+        .from('webflow_backups')
+        .select('data')
+        .single();
+
+    if (error) {
+        console.error(`Failed to fetch specific item: ${error.message}`);
+        return null;
+    }
+
+    const items: WebflowItem[] = JSON.parse(data.data);
+    return items.find(item => item.id === itemId) || null;
 };
