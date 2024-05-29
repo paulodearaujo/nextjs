@@ -127,9 +127,7 @@ export const sendItemToWebflow = async (itemId: string, targetUrl: string, ancho
         fieldData: {
             ...item.fieldData,
             'post-body': updatedBody
-        },
-        lastPublished: new Date().toISOString(),
-        lastUpdated: new Date().toISOString()
+        }
     };
 
     const accessToken = localStorage.getItem('webflow_access_token'); // Ensure this is being retrieved correctly
@@ -145,8 +143,6 @@ export const sendItemToWebflow = async (itemId: string, targetUrl: string, ancho
             isArchived: false,
             isDraft: false,
             fieldData: {
-                lastPublished: updatedItem.lastPublished,
-                lastUpdated: updatedItem.lastUpdated,
                 'post-body': updatedItem.fieldData['post-body']
             }
         })
@@ -184,8 +180,6 @@ export const restoreItemToWebflow = async (itemId: string): Promise<void> => {
             isArchived: false,
             isDraft: false,
             fieldData: {
-                lastPublished: item.lastPublished,
-                lastUpdated: item.lastUpdated,
                 'post-body': item.fieldData['post-body']
             }
         })
