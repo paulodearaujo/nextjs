@@ -1,31 +1,28 @@
 import type {WebflowItem, WebflowResponse} from '@/types';
 import {getSpecificItem} from './supabase';
 
-const getEnvVariable = (key: string): string => {
-    const value = process.env[key];
-    if (!value) {
-        throw new Error(`Missing environment variable: ${key}`);
-    }
-    return value;
-};
+const API_URL = process.env.NEXT_PUBLIC_WEBFLOW_API_URL;
+const TOKEN_URL = process.env.NEXT_PUBLIC_WEBFLOW_TOKEN_URL;
+const PROXY_URL = process.env.NEXT_PUBLIC_WEBFLOW_PROXY_URL;
+const CLIENT_ID = process.env.NEXT_PUBLIC_WEBFLOW_CLIENT_ID;
+const CLIENT_SECRET = process.env.WEBFLOW_CLIENT_SECRET;
+const REDIRECT_URI = process.env.NEXT_PUBLIC_REDIRECT_URI;
+const COLLECTION_ID = process.env.NEXT_PUBLIC_WEBFLOW_COLLECTION_ID;
 
-const API_URL = getEnvVariable('NEXT_PUBLIC_WEBFLOW_API_URL');
+if (!API_URL || !TOKEN_URL || !PROXY_URL || !CLIENT_ID || !CLIENT_SECRET || !REDIRECT_URI || !COLLECTION_ID) {
+    throw new Error('Missing required environment variables');
+}
 
 export const getAccessToken = async (authCode: string): Promise<string> => {
-    const clientId = getEnvVariable('NEXT_PUBLIC_WEBFLOW_CLIENT_ID');
-    const clientSecret = getEnvVariable('WEBFLOW_CLIENT_SECRET');
-    const redirectUri = getEnvVariable('NEXT_PUBLIC_REDIRECT_URI');
-    const tokenUrl = getEnvVariable('NEXT_PUBLIC_WEBFLOW_TOKEN_URL');
-
     const body = new URLSearchParams({
-        client_id: clientId,
-        client_secret: clientSecret,
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
         code: authCode,
         grant_type: 'authorization_code',
-        redirect_uri: redirectUri,
+        redirect_uri: REDIRECT_URI,
     });
 
-    const response = await fetch(tokenUrl, {
+    const response = await fetch(TOKEN_URL, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -81,11 +78,10 @@ export const fetchAllItems = async (collectionId: string, accessToken: string): 
 };
 
 export const fetchWebflowData = async (accessToken: string): Promise<WebflowResponse> => {
-    const proxyUrl = getEnvVariable('NEXT_PUBLIC_WEBFLOW_PROXY_URL');
-    console.log('Fetching data from proxy:', proxyUrl);
+    console.log('Fetching data from proxy:', PROXY_URL);
 
     try {
-        const response = await fetch(proxyUrl, {
+        const response = await fetch(PROXY_URL, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -133,7 +129,6 @@ export const sendItemToWebflow = async (itemId: string, targetUrl: string, ancho
     };
 
     const accessToken = localStorage.getItem('webflow_access_token'); // Ensure this is being retrieved correctly
-    const collectionId = getEnvVariable('NEXT_PUBLIC_WEBFLOW_COLLECTION_ID');
 
     const options = {
         method: 'PATCH',
@@ -154,7 +149,7 @@ export const sendItemToWebflow = async (itemId: string, targetUrl: string, ancho
     // Log the data being sent in the PATCH request
     console.log('PATCH request body:', options.body);
 
-    const response = await fetch(`${API_URL}/collections/${collectionId}/items/${itemId}`, options);
+    const response = await fetch(`${API_URL}/collections/${COLLECTION_ID}/items/${itemId}`, options);
 
     if (!response.ok) {
         const errorData = await response.json();
@@ -172,7 +167,6 @@ export const restoreItemToWebflow = async (itemId: string): Promise<void> => {
     }
 
     const accessToken = localStorage.getItem('webflow_access_token'); // Ensure this is being retrieved correctly
-    const collectionId = getEnvVariable('NEXT_PUBLIC_WEBFLOW_COLLECTION_ID');
 
     const options = {
         method: 'PATCH',
@@ -192,7 +186,7 @@ export const restoreItemToWebflow = async (itemId: string): Promise<void> => {
 
     console.log('PATCH request body:', options.body);
 
-    const response = await fetch(`${API_URL}/collections/${collectionId}/items/${itemId}`, options);
+    const response = await fetch(`${API_URL}/collections/${COLLECTION_ID}/items/${itemId}`, options);
 
     if (!response.ok) {
         const errorData = await response.json();
