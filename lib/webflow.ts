@@ -9,9 +9,30 @@ const API_URL = process.env.NEXT_PUBLIC_BASE_URL;
 const COLLECTION_ID = process.env.NEXT_PUBLIC_WEBFLOW_COLLECTION_ID;
 const PROXY_URL = process.env.NEXT_PUBLIC_WEBFLOW_PROXY_URL || '/api/webflow-proxy';
 
-if (!CLIENT_ID || !CLIENT_SECRET || !REDIRECT_URI || !TOKEN_URL || !API_URL || !COLLECTION_ID || !PROXY_URL) {
-    throw new Error('Missing necessary environment variables.');
+const requiredEnvVariables = {
+    NEXT_PUBLIC_WEBFLOW_CLIENT_ID: CLIENT_ID,
+    WEBFLOW_CLIENT_SECRET: CLIENT_SECRET,
+    NEXT_PUBLIC_REDIRECT_URI: REDIRECT_URI,
+    NEXT_PUBLIC_WEBFLOW_TOKEN_URL: TOKEN_URL,
+    NEXT_PUBLIC_BASE_URL: API_URL,
+    NEXT_PUBLIC_WEBFLOW_COLLECTION_ID: COLLECTION_ID,
+    NEXT_PUBLIC_WEBFLOW_PROXY_URL: PROXY_URL,
+};
+
+function checkEnvVariables(variables: Record<string, string | undefined>) {
+    const missingVariables = [];
+    for (const [key, value] of Object.entries(variables)) {
+        if (!value) {
+            missingVariables.push(key);
+        }
+    }
+
+    if (missingVariables.length > 0) {
+        throw new Error(`Missing necessary environment variables: ${missingVariables.join(', ')}. Existing variables: ${JSON.stringify(variables, null, 2)}`);
+    }
 }
+
+checkEnvVariables(requiredEnvVariables);
 
 export const getAccessToken = async (authCode: string): Promise<string> => {
     const body = new URLSearchParams({
