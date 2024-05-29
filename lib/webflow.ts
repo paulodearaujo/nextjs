@@ -115,7 +115,7 @@ export const fetchWebflowData = async (accessToken: string): Promise<WebflowResp
     }
 };
 
-export const sendItemToWebflow = async (itemId: string, targetUrl: string, anchor: string): Promise<void> => {
+export const sendItemToWebflow = async (itemId: string, targetUrl: string, anchor: string, collectionId: string): Promise<void> => {
     const item = await getSpecificItem(itemId);
 
     if (!item) {
@@ -152,7 +152,7 @@ export const sendItemToWebflow = async (itemId: string, targetUrl: string, ancho
         })
     };
 
-    const response = await fetch(`${WEBFLOW_API_URL}/collections/{collectionId}/items/${itemId}`, options);
+    const response = await fetch(`${WEBFLOW_API_URL}/collections/${collectionId}/items/${itemId}`, options);
 
     if (!response.ok) {
         const errorData = await response.json();
@@ -162,7 +162,7 @@ export const sendItemToWebflow = async (itemId: string, targetUrl: string, ancho
     console.log('Item sent successfully to Webflow');
 };
 
-export const restoreItemToWebflow = async (itemId: string): Promise<void> => {
+export const restoreItemToWebflow = async (itemId: string, collectionId: string): Promise<void> => {
     const item = await getSpecificItem(itemId);
 
     if (!item) {
@@ -187,7 +187,7 @@ export const restoreItemToWebflow = async (itemId: string): Promise<void> => {
         })
     };
 
-    const response = await fetch(`${WEBFLOW_API_URL}/collections/{collectionId}/items/${itemId}`, options);
+    const response = await fetch(`${WEBFLOW_API_URL}/collections/${collectionId}/items/${itemId}`, options);
 
     if (!response.ok) {
         const errorData = await response.json();
