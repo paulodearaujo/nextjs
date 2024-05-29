@@ -126,11 +126,14 @@ export const sendItemToWebflow = async (itemId: string, targetUrl: string, ancho
         ...item,
         fieldData: {
             ...item.fieldData,
-            'post-body': updatedBody
+            'post-body': updatedBody,
+            lastPublished: new Date().toISOString(),
+            lastUpdated: new Date().toISOString()
         }
     };
 
     const accessToken = localStorage.getItem('webflow_access_token'); // Ensure this is being retrieved correctly
+    const collectionId = getEnvVariable('NEXT_PUBLIC_WEBFLOW_COLLECTION_ID');
 
     const options = {
         method: 'PATCH',
@@ -142,15 +145,13 @@ export const sendItemToWebflow = async (itemId: string, targetUrl: string, ancho
         body: JSON.stringify({
             isArchived: false,
             isDraft: false,
-            fieldData: {
-                'post-body': updatedItem.fieldData['post-body']
-            }
+            fields: updatedItem.fieldData
         })
     };
 
     console.log('Sending PATCH request with options:', options);
 
-    const response = await fetch(`/api/webflow-proxy?itemId=${itemId}`, options);
+    const response = await fetch(`${API_URL}/${collectionId}/items/${itemId}`, options);
 
     if (!response.ok) {
         const errorData = await response.json();
@@ -168,6 +169,7 @@ export const restoreItemToWebflow = async (itemId: string): Promise<void> => {
     }
 
     const accessToken = localStorage.getItem('webflow_access_token'); // Ensure this is being retrieved correctly
+    const collectionId = getEnvVariable('NEXT_PUBLIC_WEBFLOW_COLLECTION_ID');
 
     const options = {
         method: 'PATCH',
@@ -179,15 +181,13 @@ export const restoreItemToWebflow = async (itemId: string): Promise<void> => {
         body: JSON.stringify({
             isArchived: false,
             isDraft: false,
-            fieldData: {
-                'post-body': item.fieldData['post-body']
-            }
+            fields: item.fieldData
         })
     };
 
     console.log('Sending PATCH request with options:', options);
 
-    const response = await fetch(`/api/webflow-proxy?itemId=${itemId}`, options);
+    const response = await fetch(`${API_URL}/${collectionId}/items/${itemId}`, options);
 
     if (!response.ok) {
         const errorData = await response.json();
