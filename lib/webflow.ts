@@ -132,11 +132,14 @@ export const sendItemToWebflow = async (itemId: string, targetUrl: string, ancho
         lastUpdated: new Date().toISOString()
     };
 
+    const accessToken = localStorage.getItem('webflow_access_token'); // Ensure this is being retrieved correctly
+
     const options = {
         method: 'PATCH',
         headers: {
             accept: 'application/json',
             'content-type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
             isArchived: false,
@@ -149,11 +152,13 @@ export const sendItemToWebflow = async (itemId: string, targetUrl: string, ancho
         })
     };
 
+    console.log('Sending PATCH request with options:', options);
+
     const response = await fetch(`/api/webflow-proxy?itemId=${itemId}`, options);
 
     if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(`Failed to send item to Webflow: ${errorData}`);
+        throw new Error(`Failed to send item to Webflow: ${JSON.stringify(errorData)}`);
     }
 
     console.log('Item sent successfully to Webflow');
@@ -166,11 +171,14 @@ export const restoreItemToWebflow = async (itemId: string): Promise<void> => {
         throw new Error('Item not found');
     }
 
+    const accessToken = localStorage.getItem('webflow_access_token'); // Ensure this is being retrieved correctly
+
     const options = {
         method: 'PATCH',
         headers: {
             accept: 'application/json',
             'content-type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
             isArchived: false,
@@ -183,11 +191,13 @@ export const restoreItemToWebflow = async (itemId: string): Promise<void> => {
         })
     };
 
+    console.log('Sending PATCH request with options:', options);
+
     const response = await fetch(`/api/webflow-proxy?itemId=${itemId}`, options);
 
     if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(`Failed to restore item to Webflow: ${errorData}`);
+        throw new Error(`Failed to restore item to Webflow: ${JSON.stringify(errorData)}`);
     }
 
     console.log('Item restored successfully to Webflow');
