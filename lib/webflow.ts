@@ -1,20 +1,6 @@
 import type {WebflowItem, WebflowResponse} from '@/types';
 import {getSpecificItem} from './supabase';
-import dotenv from 'dotenv';
-
-dotenv.config();
-
-const API_URL = process.env.NEXT_PUBLIC_WEBFLOW_API_URL;
-const TOKEN_URL = process.env.NEXT_PUBLIC_WEBFLOW_TOKEN_URL;
-const PROXY_URL = process.env.NEXT_PUBLIC_WEBFLOW_PROXY_URL;
-const CLIENT_ID = process.env.NEXT_PUBLIC_WEBFLOW_CLIENT_ID;
-const CLIENT_SECRET = process.env.WEBFLOW_CLIENT_SECRET;
-const REDIRECT_URI = process.env.NEXT_PUBLIC_REDIRECT_URI;
-const COLLECTION_ID = process.env.NEXT_PUBLIC_WEBFLOW_COLLECTION_ID;
-
-if (!API_URL || !TOKEN_URL || !PROXY_URL || !CLIENT_ID || !CLIENT_SECRET || !REDIRECT_URI || !COLLECTION_ID) {
-    throw new Error('Missing required environment variables');
-}
+import {API_URL, CLIENT_ID, CLIENT_SECRET, COLLECTION_ID, PROXY_URL, REDIRECT_URI, TOKEN_URL} from './envUtils';
 
 export const getAccessToken = async (authCode: string): Promise<string> => {
     const body = new URLSearchParams({
@@ -50,7 +36,7 @@ export const fetchAllItems = async (collectionId: string, accessToken: string): 
 
     try {
         while (hasMoreItems) {
-            const response = await fetch(`${API_URL}/collections/${collectionId}/items?offset=${offset}&limit=${limit}`, {
+            const response = await fetch(`${API_URL}/collections/${COLLECTION_ID}/items?offset=${offset}&limit=${limit}`, {
                 method: 'GET',
                 headers: {
                     accept: 'application/json',
@@ -143,7 +129,7 @@ export const sendItemToWebflow = async (itemId: string, targetUrl: string, ancho
         body: JSON.stringify({
             isArchived: false,
             isDraft: false,
-            fields: updatedItem.fieldData // Adjusting to Webflow API specification
+            fields: updatedItem.fieldData
         })
     };
 
