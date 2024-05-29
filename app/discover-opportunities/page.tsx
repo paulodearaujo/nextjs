@@ -11,16 +11,12 @@ import {Button} from "@/components/ui/button";
 import {restoreItemToWebflow, sendItemToWebflow} from '@/lib/webflow';
 
 const BASE_URL = 'https://www.infinitepay.io/blog/';
+const COLLECTION_ID = process.env.NEXT_PUBLIC_WEBFLOW_COLLECTION_ID;
 
-const getEnvVariable = (key: string): string => {
-    const value = process.env[key];
-    if (!value) {
-        throw new Error(`Missing environment variable: ${key}`);
-    }
-    return value;
-};
+if (!COLLECTION_ID) {
+    throw new Error("Missing environment variable: NEXT_PUBLIC_WEBFLOW_COLLECTION_ID");
+}
 
-const COLLECTION_ID = getEnvVariable('NEXT_PUBLIC_WEBFLOW_COLLECTION_ID'); // Adicionei getEnvVariable aqui
 
 const DiscoverOpportunitiesPage = () => {
     const { webflowData } = useWebflowData();
