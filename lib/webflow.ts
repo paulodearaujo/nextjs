@@ -1,6 +1,16 @@
 import type {WebflowItem, WebflowResponse} from '@/types';
 import {getSpecificItem} from './supabase';
 
+console.log({
+    CLIENT_ID: process.env.NEXT_PUBLIC_WEBFLOW_CLIENT_ID,
+    CLIENT_SECRET: process.env.WEBFLOW_CLIENT_SECRET,
+    REDIRECT_URI: process.env.NEXT_PUBLIC_REDIRECT_URI,
+    TOKEN_URL: process.env.NEXT_PUBLIC_WEBFLOW_TOKEN_URL,
+    API_URL: process.env.NEXT_PUBLIC_BASE_URL,
+    COLLECTION_ID: process.env.NEXT_PUBLIC_WEBFLOW_COLLECTION_ID,
+    PROXY_URL: process.env.NEXT_PUBLIC_WEBFLOW_PROXY_URL,
+});
+
 const CLIENT_ID = process.env.NEXT_PUBLIC_WEBFLOW_CLIENT_ID;
 const CLIENT_SECRET = process.env.WEBFLOW_CLIENT_SECRET;
 const REDIRECT_URI = process.env.NEXT_PUBLIC_REDIRECT_URI;
