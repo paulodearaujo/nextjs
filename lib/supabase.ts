@@ -11,19 +11,15 @@ if (!supabaseUrl || !supabaseKey) {
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
 export const saveBackupToSupabase = async (data: WebflowResponse): Promise<void> => {
-    const items = data.items;
+    const { error } = await supabase.from('webflow_backups').insert([
+        {
+            data: JSON.stringify(data.items), // Salva apenas a lista de itens
+            created_at: new Date().toISOString(), // Usa ISO string format para created_at
+        },
+    ]);
 
-    for (const item of items) {
-        const { error } = await supabase.from('webflow_backups').insert([
-            {
-                data: JSON.stringify(item),
-                created_at: new Date().toISOString(),
-            },
-        ]);
-
-        if (error) {
-            throw new Error(`Failed to save item to Supabase: ${error.message}`);
-        }
+    if (error) {
+        throw new Error(`Failed to save backup to Supabase: ${error.message}`);
     }
 };
 
