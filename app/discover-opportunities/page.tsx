@@ -155,6 +155,7 @@ const DiscoverOpportunitiesPage = () => {
     const handleSendBacklink = async (id: string, urlFrom: string, anchor: string) => {
         setLoading(prev => ({ ...prev, [id]: true }));
         try {
+            console.log('Sending backlink:', { id, urlFrom, anchor, collectionId: COLLECTION_ID });
             await sendItemToWebflow(id, urlFrom, anchor, COLLECTION_ID);
             setSentBacklink(prev => ({ ...prev, [id]: true }));
         } catch (error) {
@@ -164,6 +165,7 @@ const DiscoverOpportunitiesPage = () => {
             setLoading(prev => ({ ...prev, [id]: false }));
         }
     };
+
 
     const handleRestoreItem = async (id: string) => {
         setLoading(prev => ({ ...prev, [id]: true }));

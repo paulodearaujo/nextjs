@@ -148,15 +148,21 @@ export const sendItemToWebflow = async (itemId: string, targetUrl: string, ancho
         })
     };
 
-    const response = await fetch(`${WEBFLOW_API_URL}/collections/${collectionId}/items/${itemId}`, options);
+    try {
+        const response = await fetch(`${WEBFLOW_API_URL}/collections/${collectionId}/items/${itemId}`, options);
 
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`Failed to send item to Webflow: ${errorData}`);
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`Failed to send item to Webflow: ${errorData}`);
+        }
+
+        console.log('Item sent successfully to Webflow');
+    } catch (error) {
+        console.error('Error in sendItemToWebflow:', error);
+        throw error;
     }
-
-    console.log('Item sent successfully to Webflow');
 };
+
 
 export const restoreItemToWebflow = async (itemId: string, collectionId: string): Promise<void> => {
     const item = await getSpecificItem(itemId);
