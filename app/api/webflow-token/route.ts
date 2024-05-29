@@ -1,9 +1,24 @@
 import type {NextRequest} from 'next/server';
 import {NextResponse} from 'next/server';
 
+console.log('Environment Variables:', {
+    NEXT_PUBLIC_WEBFLOW_CLIENT_ID: process.env.NEXT_PUBLIC_WEBFLOW_CLIENT_ID,
+    WEBFLOW_CLIENT_SECRET: process.env.WEBFLOW_CLIENT_SECRET,
+    NEXT_PUBLIC_REDIRECT_URI: process.env.NEXT_PUBLIC_REDIRECT_URI,
+    NEXT_PUBLIC_WEBFLOW_TOKEN_URL: process.env.NEXT_PUBLIC_WEBFLOW_TOKEN_URL,
+    NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
+    NEXT_PUBLIC_WEBFLOW_COLLECTION_ID: process.env.NEXT_PUBLIC_WEBFLOW_COLLECTION_ID,
+    NEXT_PUBLIC_WEBFLOW_PROXY_URL: process.env.NEXT_PUBLIC_WEBFLOW_PROXY_URL,
+});
+
+
 export async function POST(request: NextRequest) {
     const clientId = process.env.WEBFLOW_CLIENT_ID;
     const clientSecret = process.env.WEBFLOW_CLIENT_SECRET;
+    console.log('Consts:', {
+        clientId,
+        clientSecret
+    });
 
     if (!clientId || !clientSecret) {
         return NextResponse.json({ error: 'Missing environment variables: WEBFLOW_CLIENT_ID or WEBFLOW_CLIENT_SECRET' }, { status: 500 });
