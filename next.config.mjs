@@ -1,9 +1,5 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
-
-export default nextConfig;
-
-module.exports = {
+const nextConfig = {
     env: {
         WEBFLOW_CLIENT_SECRET: process.env.WEBFLOW_CLIENT_SECRET,
         NEXT_PUBLIC_WEBFLOW_CLIENT_ID: process.env.NEXT_PUBLIC_WEBFLOW_CLIENT_ID,
@@ -14,3 +10,5 @@ module.exports = {
         NEXT_PUBLIC_WEBFLOW_PROXY_URL: process.env.NEXT_PUBLIC_WEBFLOW_PROXY_URL,
     },
 };
+
+export default nextConfig;
