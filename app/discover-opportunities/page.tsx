@@ -1,7 +1,7 @@
 "use client";
 
 import {useCallback, useEffect, useState} from 'react';
-import type {Opportunity, WebflowItem} from '@/types';
+import type {AnchorContext, Opportunity, WebflowItem} from '@/types';
 import {normalizeUrl, validateUrl} from '@/lib/utils';
 import {useWebflowData} from '@/context/WebflowDataContext';
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
@@ -17,11 +17,15 @@ if (!COLLECTION_ID) {
     throw new Error("Missing environment variable: NEXT_PUBLIC_WEBFLOW_COLLECTION_ID");
 }
 
+type OpportunityWithContext = Omit<Opportunity, 'anchorContext'> & {
+    anchorContext: AnchorContext;
+};
+
 const DiscoverOpportunitiesPage = () => {
     const { webflowData } = useWebflowData();
     const [targetUrl, setTargetUrl] = useState<string>('');
     const [anchorPotentials, setAnchorPotentials] = useState<string>('');
-    const [hyperlinkOpportunities, setHyperlinkOpportunities] = useState<Opportunity[]>([]);
+    const [hyperlinkOpportunities, setHyperlinkOpportunities] = useState<OpportunityWithContext[]>([]);
     const [errorMessage, setErrorMessage] = useState<string>('');
     const [isSearching, setIsSearching] = useState<boolean>(false);
     const [loading, setLoading] = useState<{ [key: string]: boolean }>({});
@@ -70,7 +74,7 @@ const DiscoverOpportunitiesPage = () => {
 
             const usedUrls = new Set<string>();
 
-            const opportunities: Opportunity[] = webflowData.reduce((acc: Opportunity[], item: WebflowItem) => {
+            const opportunities: OpportunityWithContext[] = webflowData.reduce((acc: OpportunityWithContext[], item: WebflowItem) => {
                 const itemSlug = item.fieldData.slug;
                 if (!itemSlug) {
                     console.warn(`Item without slug found: ${item.id}`);
@@ -95,16 +99,18 @@ const DiscoverOpportunitiesPage = () => {
                 console.log(`Processed text content: ${text.substring(0, 100)}...`);
 
                 for (const anchor of anchors) {
-                    const regex = new RegExp(`\\b${anchor}\\b`, 'gi');
+                    const regex = new RegExp(`\\b(${anchor})\\b`, 'gi');
                     console.log(`Searching for anchor: ${anchor} using regex: ${regex}`);
-                    const matches = text.toLowerCase().matchAll(regex);
+                    const matches = text.matchAll(regex);
 
                     for (const match of matches) {
                         if (match.index !== undefined) {
                             const contextStart = Math.max(0, match.index - 30);
-                            const contextEnd = Math.min(text.length, match.index + 30);
-                            const anchorContext = text.substring(contextStart, contextEnd).replace(/\n/g, ' ').trim();
-                            console.log(`Match found: ${anchorContext}`);
+                            const contextEnd = Math.min(text.length, match.index + anchor.length + 30);
+                            const contextBefore = text.substring(contextStart, match.index).replace(/\n/g, ' ').trim();
+                            const contextAfter = text.substring(match.index + anchor.length, contextEnd).replace(/\n/g, ' ').trim();
+                            const anchorContext: AnchorContext = { before: contextBefore, anchor: match[0], after: contextAfter };
+                            console.log(`Match found: ...${contextBefore} <strong>${match[0]}</strong> ${contextAfter}...`);
 
                             if (!usedUrls.has(itemUrl)) {
                                 acc.push({
@@ -181,6 +187,11 @@ const DiscoverOpportunitiesPage = () => {
         }
     };
 
+    const createHighlightedUrl = (url: string, anchor: string) => {
+        const encodedAnchor = encodeURIComponent(anchor);
+        return `${url}#:~:text=${encodedAnchor}`;
+    };
+
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
             <Card className="w-full max-w-4xl mx-auto shadow-lg rounded-lg bg-gray-800 text-white">
@@ -222,12 +233,16 @@ const DiscoverOpportunitiesPage = () => {
                                 {hyperlinkOpportunities.map((opportunity) => (
                                     <TableRow key={opportunity.id}>
                                         <TableCell>
-                                            <a href={opportunity.urlFrom} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">{opportunity.urlFrom}</a>
+                                            <a href={createHighlightedUrl(opportunity.urlFrom, opportunity.anchorContext.anchor)} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">{opportunity.urlFrom}</a>
                                         </TableCell>
-                                        <TableCell>{opportunity.anchorContext}</TableCell>
+                                        <TableCell>
+                                            <span>...{opportunity.anchorContext.before} </span>
+                                            <strong>{opportunity.anchorContext.anchor}</strong>
+                                            <span> {opportunity.anchorContext.after}...</span>
+                                        </TableCell>
                                         <TableCell>
                                             <Button
-                                                onClick={() => handleSendBacklink(opportunity.id, opportunity.completeUrl, opportunity.anchorContext)}
+                                                onClick={() => handleSendBacklink(opportunity.id, opportunity.completeUrl, opportunity.anchorContext.anchor)}
                                                 className="bg-green-700 text-white hover:bg-green-600 mr-2"
                                                 disabled={loading[opportunity.id]}
                                             >

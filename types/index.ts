@@ -51,3 +51,9 @@ export interface WebflowItem {
 export interface WebflowResponse {
     items: WebflowItem[];
 }
+
+export type AnchorContext = {
+    before: string;
+    anchor: string;
+    after: string;
+};
