@@ -4,6 +4,7 @@ export interface Link {
     completeUrl: string;
     urlTo: string;
     lastUpdated: string;
+    anchorContext: AnchorContext;
 }
 
 export interface Opportunity {

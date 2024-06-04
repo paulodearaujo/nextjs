@@ -49,13 +49,45 @@ const IdentifyHyperlinksPage = () => {
                         const normalizedHref = normalizeUrl(link.href);
                         return urlVariations.some(variation => normalizedHref === variation);
                     })
-                    .map(link => ({
-                        urlFrom: `${BASE_URL}${item.fieldData.slug}`,
-                        anchor: link.textContent || '',
-                        completeUrl: link.href,
-                        urlTo: link.href,
-                        lastUpdated: item.lastUpdated
-                    }));
+                    .map(link => {
+                        const textContent = link.textContent || '';
+                        const matchIndex = textContent.toLowerCase().indexOf(link.href.toLowerCase());
+                        let contextBefore = '';
+                        let contextAfter = '';
+                        let anchorText = textContent;
+
+                        if (matchIndex >= 0) {
+                            let contextStart = Math.max(0, matchIndex - 30);
+                            let contextEnd = Math.min(textContent.length, matchIndex + link.href.length + 30);
+
+                            // Ajustar para não truncar palavras no início
+                            while (contextStart > 0 && !/\s/.test(textContent[contextStart - 1])) {
+                                contextStart--;
+                            }
+
+                            // Ajustar para não truncar palavras no fim
+                            while (contextEnd < textContent.length && !/\s/.test(textContent[contextEnd])) {
+                                contextEnd++;
+                            }
+
+                            contextBefore = textContent.substring(contextStart, matchIndex).replace(/\n/g, ' ').trim();
+                            contextAfter = textContent.substring(matchIndex + link.href.length, contextEnd).replace(/\n/g, ' ').trim();
+                            anchorText = textContent.substring(matchIndex, matchIndex + link.href.length);
+                        }
+
+                        return {
+                            urlFrom: `${BASE_URL}${item.fieldData.slug}`,
+                            anchor: anchorText,
+                            completeUrl: link.href,
+                            urlTo: link.href,
+                            lastUpdated: item.lastUpdated,
+                            anchorContext: {
+                                before: contextBefore,
+                                anchor: anchorText,
+                                after: contextAfter,
+                            }
+                        };
+                    });
             });
 
             console.log('Links identificados:', links);
@@ -64,7 +96,7 @@ const IdentifyHyperlinksPage = () => {
                 setErrorMessage('No links found matching the URL.');
                 console.log('Erro: Nenhum link encontrado que corresponda à URL.');
             } else {
-                setExistingLinks(links);
+                setExistingLinks(links as Link[]);
                 console.log('Estado atualizado: existingLinks', links);
             }
         } catch (error) {
@@ -114,7 +146,7 @@ const IdentifyHyperlinksPage = () => {
                                 <TableRow>
                                     <TableHead>From URL</TableHead>
                                     <TableHead>To URL</TableHead>
-                                    <TableHead>Anchor</TableHead>
+                                    <TableHead>Context</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -126,7 +158,11 @@ const IdentifyHyperlinksPage = () => {
                                         <TableCell>
                                             <a href={link.urlTo} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">{link.urlTo}</a>
                                         </TableCell>
-                                        <TableCell>{link.anchor}</TableCell>
+                                        <TableCell>
+                                            <span>...{link.anchorContext.before} </span>
+                                            <strong>{link.anchorContext.anchor}</strong>
+                                            <span> {link.anchorContext.after}...</span>
+                                        </TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
