@@ -109,7 +109,10 @@ const IdentifyHyperlinksPage = () => {
 
     useEffect(() => {
         if (isSearching) {
-            identifyExistingHyperlinks();
+            const runDiscovery = async () => {
+                await identifyExistingHyperlinks();
+            };
+            runDiscovery().catch(console.error); // Ensuring the promise is handled correctly
         }
     }, [isSearching, identifyExistingHyperlinks]);
 
