@@ -198,12 +198,6 @@ const DiscoverOpportunitiesPage = () => {
         }
     };
 
-    const createHighlightedUrl = (url: string, anchorContext: AnchorContext) => {
-        const contextText = `${anchorContext.before} ${anchorContext.anchor} ${anchorContext.after}`;
-        const encodedContext = encodeURIComponent(contextText);
-        return `${url}#:~:text=${encodedContext}`;
-    };
-
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
             <Card className="w-full max-w-4xl mx-auto shadow-lg rounded-lg bg-gray-800 text-white">
@@ -245,7 +239,7 @@ const DiscoverOpportunitiesPage = () => {
                                 {hyperlinkOpportunities.map((opportunity) => (
                                     <TableRow key={opportunity.id}>
                                         <TableCell>
-                                            <a href={createHighlightedUrl(opportunity.urlFrom, opportunity.anchorContext)} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">{opportunity.urlFrom}</a>
+                                            <a href={opportunity.urlFrom} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">{opportunity.urlFrom}</a>
                                         </TableCell>
                                         <TableCell>
                                             <span>...{opportunity.anchorContext.before} </span>
