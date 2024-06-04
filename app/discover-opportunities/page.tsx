@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {useCallback, useEffect, useState} from 'react';
 import type {Opportunity, WebflowItem} from '@/types';
@@ -29,7 +29,7 @@ const DiscoverOpportunitiesPage = () => {
 
     const validateAndNormalizeUrl = useCallback((url: string) => {
         if (!url.trim()) {
-            throw new Error('Please provide a valid URL.');
+            return '';
         }
 
         if (!validateUrl(url)) {
@@ -59,7 +59,10 @@ const DiscoverOpportunitiesPage = () => {
 
     const discoverHyperlinkOpportunities = useCallback(async () => {
         try {
-            const normalizedTargetUrl = validateAndNormalizeUrl(targetUrl);
+            const normalizedTargetUrl = targetUrl.trim() ? validateAndNormalizeUrl(targetUrl) : '';
+            if (targetUrl.trim() && !normalizedTargetUrl) {
+                throw new Error('Invalid or empty target URL.');
+            }
             console.log('URL validated and normalized:', normalizedTargetUrl);
 
             const anchors = processAnchors(anchorPotentials);
@@ -75,7 +78,7 @@ const DiscoverOpportunitiesPage = () => {
                 }
 
                 const itemUrl = `${BASE_URL}${itemSlug}`;
-                if (normalizedTargetUrl === itemUrl) {
+                if (normalizedTargetUrl && normalizedTargetUrl === itemUrl) {
                     console.log(`Skipping target URL itself: ${itemUrl}`);
                     return acc;
                 }
