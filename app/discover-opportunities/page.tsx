@@ -105,8 +105,19 @@ const DiscoverOpportunitiesPage = () => {
 
                     for (const match of matches) {
                         if (match.index !== undefined) {
-                            const contextStart = Math.max(0, match.index - 30);
-                            const contextEnd = Math.min(text.length, match.index + anchor.length + 30);
+                            let contextStart = Math.max(0, match.index - 30);
+                            let contextEnd = Math.min(text.length, match.index + anchor.length + 30);
+
+                            // Ajustar para não truncar palavras no início
+                            while (contextStart > 0 && !/\s/.test(text[contextStart - 1])) {
+                                contextStart--;
+                            }
+
+                            // Ajustar para não truncar palavras no fim
+                            while (contextEnd < text.length && !/\s/.test(text[contextEnd])) {
+                                contextEnd++;
+                            }
+
                             const contextBefore = text.substring(contextStart, match.index).replace(/\n/g, ' ').trim();
                             const contextAfter = text.substring(match.index + anchor.length, contextEnd).replace(/\n/g, ' ').trim();
                             const anchorContext: AnchorContext = { before: contextBefore, anchor: match[0], after: contextAfter };
@@ -187,9 +198,10 @@ const DiscoverOpportunitiesPage = () => {
         }
     };
 
-    const createHighlightedUrl = (url: string, anchor: string) => {
-        const encodedAnchor = encodeURIComponent(anchor);
-        return `${url}#:~:text=${encodedAnchor}`;
+    const createHighlightedUrl = (url: string, anchorContext: AnchorContext) => {
+        const contextText = `${anchorContext.before} ${anchorContext.anchor} ${anchorContext.after}`;
+        const encodedContext = encodeURIComponent(contextText);
+        return `${url}#:~:text=${encodedContext}`;
     };
 
     return (
@@ -233,7 +245,7 @@ const DiscoverOpportunitiesPage = () => {
                                 {hyperlinkOpportunities.map((opportunity) => (
                                     <TableRow key={opportunity.id}>
                                         <TableCell>
-                                            <a href={createHighlightedUrl(opportunity.urlFrom, opportunity.anchorContext.anchor)} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">{opportunity.urlFrom}</a>
+                                            <a href={createHighlightedUrl(opportunity.urlFrom, opportunity.anchorContext)} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-600">{opportunity.urlFrom}</a>
                                         </TableCell>
                                         <TableCell>
                                             <span>...{opportunity.anchorContext.before} </span>
