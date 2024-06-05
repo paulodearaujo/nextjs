@@ -1,9 +1,9 @@
 "use client";
 
-import {createContext, type ReactNode, useCallback, useContext, useEffect, useState} from 'react';
-import {fetchWebflowData} from '@/lib/webflow';
-import {authorizeWebflow} from '@/lib/auth';
-import type {WebflowItem} from '@/types';
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from 'react';
+import { fetchWebflowData } from '@/lib/webflow';
+import { authorizeWebflow } from '@/lib/auth';
+import type { WebflowItem } from '@/types';
 
 interface WebflowDataContextProps {
     webflowData: WebflowItem[];

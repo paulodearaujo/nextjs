@@ -79,6 +79,40 @@ export const fetchAllItems = async (collectionId: string, accessToken: string): 
     return allItems;
 };
 
+export const fetchWebflowData = async (accessToken: string): Promise<WebflowResponse> => {
+    const proxyUrl = '/api/webflow-proxy';
+    console.log('Fetching data from proxy:', proxyUrl);
+
+    try {
+        const response = await fetch(proxyUrl, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json',
+                Authorization: `Bearer ${accessToken}`,
+            },
+        });
+        console.log('fetchWebflowData Access Token:', accessToken);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Error response from proxy:', errorText);
+            throw new Error('Failed to fetch data from Webflow');
+        }
+
+        const data: WebflowResponse = await response.json();
+        console.log('Data received from proxy:', data);
+        return data;
+    } catch (error) {
+        if (error instanceof Error) {
+            console.error('Error fetching data from Webflow:', error.message);
+            throw new Error(`Error fetching data from Webflow: ${error.message}`);
+        }
+        console.error('Unexpected error:', error);
+        throw new Error('An unexpected error occurred while fetching data from Webflow');
+    }
+};
+
 export const sendItemToWebflow = async (itemId: string, targetUrl: string, anchor: string): Promise<void> => {
     const item = await getSpecificItem(itemId);
     if (!item) {
