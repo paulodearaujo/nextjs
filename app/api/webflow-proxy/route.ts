@@ -1,69 +1,58 @@
-import type {NextRequest} from 'next/server';
-import {NextResponse} from 'next/server';
-import {fetchAllItems} from '@/lib/webflow';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
+import { fetchAllItems } from '@/lib/webflow';
 
-const collectionId = process.env.NEXT_PUBLIC_WEBFLOW_COLLECTION_ID;
-const WEBFLOW_API_URL = 'https://api.webflow.com/v2';
-
-export async function GET(request: NextRequest) {
-    if (!collectionId) {
-        return NextResponse.json({ error: 'Collection ID is not defined' }, { status: 500 });
+const getEnvVariable = (key: string): string => {
+    const value = process.env[key];
+    if (!value) {
+        throw new Error(`Missing environment variable: ${key}`);
     }
+    return value;
+};
 
-    const accessToken = request.headers.get('Authorization')?.split(' ')[1];
-
-    if (!accessToken) {
-        return NextResponse.json({ error: 'Missing access token' }, { status: 401 });
-    }
+export async function GET() {
+    const collectionId = getEnvVariable('NEXT_PUBLIC_WEBFLOW_COLLECTION_ID');
+    const accessToken = getEnvVariable('WEBFLOW_ACCESS_TOKEN');
 
     try {
-        const data = await fetchAllItems(collectionId, accessToken);
-        return NextResponse.json({ items: data });
+        const items = await fetchAllItems(collectionId, accessToken);
+        return NextResponse.json({ items });
     } catch (error) {
-        console.error('Error fetching data from Webflow:', error);
-        return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 });
+        console.error('Error fetching items from Webflow:', error);
+        return NextResponse.json({ error: 'Failed to fetch data from Webflow' }, { status: 500 });
     }
 }
 
 export async function PATCH(request: NextRequest) {
-    if (!collectionId) {
-        return NextResponse.json({ error: 'Collection ID is not defined' }, { status: 500 });
-    }
-
-    const accessToken = request.headers.get('Authorization')?.split(' ')[1];
-    const itemId = new URL(request.url).searchParams.get('itemId');
-
-    if (!accessToken) {
-        return NextResponse.json({ error: 'Missing access token' }, { status: 401 });
-    }
+    const { searchParams } = new URL(request.url);
+    const itemId = searchParams.get('itemId');
 
     if (!itemId) {
-        return NextResponse.json({ error: 'Missing item ID' }, { status: 400 });
+        return NextResponse.json({ error: 'Missing itemId parameter' }, { status: 400 });
     }
 
+    const accessToken = getEnvVariable('WEBFLOW_ACCESS_TOKEN');
+    const body = await request.json();
+
     try {
-        const body = await request.json();
-        console.log(`PATCH request to Webflow for item ${itemId} with body:`, body);
-        const response = await fetch(`${WEBFLOW_API_URL}/collections/${collectionId}/items/${itemId}`, {
+        const response = await fetch(`${getEnvVariable('WEBFLOW_API_URL')}/collections/${itemId}`, {
             method: 'PATCH',
             headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${accessToken}`,
-                Accept: 'application/json',
+                accept: 'application/json',
+                'content-type': 'application/json',
+                authorization: `Bearer ${accessToken}`,
             },
             body: JSON.stringify(body),
         });
 
         if (!response.ok) {
             const errorData = await response.json();
-            console.error('Error response from Webflow:', errorData);
-            return NextResponse.json({ error: errorData }, { status: response.status });
+            return NextResponse.json({ error: errorData.msg || 'Failed to update item in Webflow' }, { status: response.status });
         }
 
-        const data = await response.json();
-        return NextResponse.json(data, { status: 200 });
+        return NextResponse.json({ message: 'Item updated successfully' });
     } catch (error) {
         console.error('Error updating item in Webflow:', error);
-        return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to update item in Webflow' }, { status: 500 });
     }
 }
