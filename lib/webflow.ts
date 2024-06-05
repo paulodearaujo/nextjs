@@ -49,6 +49,7 @@ export const fetchAllItems = async (collectionId: string, accessToken: string): 
 
     try {
         while (hasMoreItems) {
+            console.log(`Fetching items from Webflow: offset=${offset}, limit=${limit}`);
             const response = await fetch(`${API_URL}/${collectionId}/items?offset=${offset}&limit=${limit}`, {
                 method: 'GET',
                 headers: {
