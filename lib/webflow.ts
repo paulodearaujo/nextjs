@@ -1,5 +1,5 @@
-import type { WebflowItem, WebflowResponse } from '@/types';
-import { getSpecificItem } from './supabase';
+import type {WebflowItem, WebflowResponse} from '@/types';
+import {getSpecificItem} from './supabase';
 
 const API_URL = "https://api.webflow.com/v2/collections";
 const WEBFLOW_ACCESS_TOKEN = process.env.WEBFLOW_ACCESS_TOKEN;
@@ -58,6 +58,7 @@ export const fetchAllItems = async (collectionId: string, accessToken: string): 
                     authorization: `Bearer ${accessToken}`,
                 },
             });
+            console.log('fetchAllItems Access Token:', response);
 
             if (!response.ok) {
                 const errorResponse = await response.json();
@@ -83,6 +84,7 @@ export const fetchAllItems = async (collectionId: string, accessToken: string): 
 
 export const fetchWebflowData = async (accessToken: string): Promise<WebflowResponse> => {
     const proxyUrl = '/api/webflow-proxy';
+    console.log('Fetching data from proxy:', proxyUrl);
 
     try {
         const response = await fetch(proxyUrl, {
@@ -93,16 +95,24 @@ export const fetchWebflowData = async (accessToken: string): Promise<WebflowResp
                 Authorization: `Bearer ${accessToken}`,
             },
         });
+        console.log('fetchWebflowData Access Token:', accessToken);
+
 
         if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Error response from proxy:', errorText);
             throw new Error('Failed to fetch data from Webflow');
         }
 
-        return await response.json();
+        const data: WebflowResponse = await response.json();
+        console.log('Data received from proxy:', data);
+        return data;
     } catch (error) {
         if (error instanceof Error) {
+            console.error('Error fetching data from Webflow:', error.message);
             throw new Error(`Error fetching data from Webflow: ${error.message}`);
         }
+        console.error('Unexpected error:', error);
         throw new Error('An unexpected error occurred while fetching data from Webflow');
     }
 };
@@ -115,6 +125,7 @@ export const sendItemToWebflow = async (itemId: string, targetUrl: string, ancho
     }
 
     const updatedBody = item.fieldData['post-body'].replace(new RegExp(`\\b${anchor}\\b`, 'gi'), `<a href="${targetUrl}">${anchor}</a>`);
+
     const updatedItem = {
         ...item,
         fieldData: {
@@ -130,7 +141,7 @@ export const sendItemToWebflow = async (itemId: string, targetUrl: string, ancho
         headers: {
             accept: 'application/json',
             'content-type': 'application/json',
-            authorization: `Bearer ${WEBFLOW_ACCESS_TOKEN}`,
+            Authorization: `Bearer ${WEBFLOW_ACCESS_TOKEN}`, // Utilize a variável de ambiente para o token
         },
         body: JSON.stringify({
             isArchived: false,
@@ -138,14 +149,19 @@ export const sendItemToWebflow = async (itemId: string, targetUrl: string, ancho
             fields: updatedItem.fieldData,
         })
     };
+    console.log('sendItemToWebflow Access Token:', options);
 
     try {
-        const response = await fetch(`${API_URL}/${getEnvVariable('NEXT_PUBLIC_WEBFLOW_COLLECTION_ID')}/items/${itemId}`, options);
+        const proxyUrl = `/api/webflow-proxy?itemId=${itemId}`;
+        const response = await fetch(proxyUrl, options);
 
         if (!response.ok) {
             const errorData = await response.json();
+            console.error('Error response from Webflow:', errorData);
             throw new Error(`Failed to send item to Webflow: ${errorData}`);
         }
+
+        console.log('Item sent successfully to Webflow');
     } catch (error) {
         console.error('Error in sendItemToWebflow:', error);
         throw error;
@@ -164,7 +180,7 @@ export const restoreItemToWebflow = async (itemId: string): Promise<void> => {
         headers: {
             accept: 'application/json',
             'content-type': 'application/json',
-            authorization: `Bearer ${WEBFLOW_ACCESS_TOKEN}`,
+            Authorization: `Bearer ${WEBFLOW_ACCESS_TOKEN}`,
         },
         body: JSON.stringify({
             isArchived: false,
@@ -172,14 +188,19 @@ export const restoreItemToWebflow = async (itemId: string): Promise<void> => {
             fields: item.fieldData,
         })
     };
+    console.log('restoreItemToWebflow Access Token:', options);
 
     try {
-        const response = await fetch(`${API_URL}/${getEnvVariable('NEXT_PUBLIC_WEBFLOW_COLLECTION_ID')}/items/${itemId}`, options);
+        const proxyUrl = `/api/webflow-proxy?itemId=${itemId}`;
+        const response = await fetch(proxyUrl, options);
 
         if (!response.ok) {
             const errorData = await response.json();
+            console.error('Response error data:', errorData);
             throw new Error(`Failed to restore item to Webflow: ${errorData}`);
         }
+
+        console.log('Item restored successfully to Webflow');
     } catch (error) {
         console.error('Error in restoreItemToWebflow:', error);
         throw error;

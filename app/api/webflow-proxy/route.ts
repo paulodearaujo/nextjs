@@ -1,16 +1,16 @@
-import type { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
-import { fetchAllItems } from '@/lib/webflow';
+import type {NextRequest} from 'next/server';
+import {NextResponse} from 'next/server';
+import {fetchAllItems} from '@/lib/webflow';
 
 const collectionId = process.env.NEXT_PUBLIC_WEBFLOW_COLLECTION_ID;
 const WEBFLOW_API_URL = 'https://api.webflow.com/v2';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
     if (!collectionId) {
         return NextResponse.json({ error: 'Collection ID is not defined' }, { status: 500 });
     }
 
-    const accessToken = process.env.WEBFLOW_ACCESS_TOKEN;
+    const accessToken = request.headers.get('Authorization')?.split(' ')[1];
 
     if (!accessToken) {
         return NextResponse.json({ error: 'Missing access token' }, { status: 401 });
@@ -30,7 +30,7 @@ export async function PATCH(request: NextRequest) {
         return NextResponse.json({ error: 'Collection ID is not defined' }, { status: 500 });
     }
 
-    const accessToken = process.env.WEBFLOW_ACCESS_TOKEN;
+    const accessToken = request.headers.get('Authorization')?.split(' ')[1];
     const itemId = new URL(request.url).searchParams.get('itemId');
 
     if (!accessToken) {
@@ -43,22 +43,25 @@ export async function PATCH(request: NextRequest) {
 
     try {
         const body = await request.json();
+        console.log(`PATCH request to Webflow for item ${itemId} with body:`, body);
         const response = await fetch(`${WEBFLOW_API_URL}/collections/${collectionId}/items/${itemId}`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
-                authorization: `Bearer ${accessToken}`,
-                accept: 'application/json',
+                Authorization: `Bearer ${accessToken}`,
+                Accept: 'application/json',
             },
             body: JSON.stringify(body),
         });
 
         if (!response.ok) {
             const errorData = await response.json();
+            console.error('Error response from Webflow:', errorData);
             return NextResponse.json({ error: errorData }, { status: response.status });
         }
 
-        return NextResponse.json({ message: 'Item updated successfully' });
+        const data = await response.json();
+        return NextResponse.json(data, { status: 200 });
     } catch (error) {
         console.error('Error updating item in Webflow:', error);
         return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 });
