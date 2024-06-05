@@ -11,10 +11,13 @@ const getEnvVariable = (key: string): string => {
 };
 
 export async function GET() {
-    const collectionId = getEnvVariable('NEXT_PUBLIC_WEBFLOW_COLLECTION_ID');
-    const accessToken = getEnvVariable('WEBFLOW_ACCESS_TOKEN');
-
     try {
+        const collectionId = getEnvVariable('NEXT_PUBLIC_WEBFLOW_COLLECTION_ID');
+        const accessToken = getEnvVariable('WEBFLOW_ACCESS_TOKEN');
+
+        console.log('Collection ID:', collectionId);
+        console.log('Access Token:', accessToken ? 'Exists' : 'Not Found');
+
         const items = await fetchAllItems(collectionId, accessToken);
         return NextResponse.json({ items });
     } catch (error) {

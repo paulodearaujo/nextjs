@@ -59,6 +59,7 @@ export const fetchAllItems = async (collectionId: string, accessToken: string): 
 
             if (!response.ok) {
                 const errorResponse = await response.json();
+                console.error('Error response from Webflow API:', errorResponse);
                 throw new Error(errorResponse.msg || 'Failed to fetch data from Webflow');
             }
 
@@ -92,7 +93,6 @@ export const fetchWebflowData = async (accessToken: string): Promise<WebflowResp
                 Authorization: `Bearer ${accessToken}`,
             },
         });
-        console.log('fetchWebflowData Access Token:', accessToken);
 
         if (!response.ok) {
             const errorText = await response.text();
@@ -146,7 +146,7 @@ export const sendItemToWebflow = async (itemId: string, targetUrl: string, ancho
     };
 
     try {
-        const response = await fetch(`/api/webflow-proxy?itemId=${itemId}`, options);
+        const response = await fetch(`${getEnvVariable('WEBFLOW_API_URL')}/collections/${getEnvVariable('NEXT_PUBLIC_WEBFLOW_COLLECTION_ID')}/items/${itemId}`, options);
 
         if (!response.ok) {
             const errorData = await response.json();
@@ -184,7 +184,7 @@ export const restoreItemToWebflow = async (itemId: string): Promise<void> => {
     };
 
     try {
-        const response = await fetch(`/api/webflow-proxy?itemId=${itemId}`, options);
+        const response = await fetch(`${getEnvVariable('WEBFLOW_API_URL')}/collections/${getEnvVariable('NEXT_PUBLIC_WEBFLOW_COLLECTION_ID')}/items/${itemId}`, options);
 
         if (!response.ok) {
             const errorData = await response.json();
